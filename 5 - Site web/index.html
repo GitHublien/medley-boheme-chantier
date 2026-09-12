@@ -128,7 +128,7 @@ a.discret{ color:var(--gris); font-size:.95rem; text-decoration:underline; text-
   <div class="pas">
     <div><b class="n">1</b><span>Appuie sur les <b id="troisPoints">trois points ⋮</b>, <b id="ouCa">en haut à droite</b>.</span></div>
     <div><b class="n">2</b><span>Choisis <b id="ouvrirDans">« Ouvrir dans Chrome »</b>, ou « Ouvrir dans le navigateur ».</span></div>
-    <div><b class="n">3</b><span>Cette page se rouvre, et l'installation <b>part toute seule</b>.</span></div>
+    <div><b class="n">3</b><span id="pasAuto">Cette page se rouvre, et l'installation <b>part toute seule</b>.</span></div>
   </div>
   <p class="petit">Si tu ne trouves pas, copie le lien et colle-le dans <span id="navNom2">Chrome</span> :</p>
   <div class="lien"><input id="champLien" readonly><button class="btn doux" id="copier" style="width:auto;padding:.8rem 1.1rem">Copier</button></div>
@@ -250,6 +250,12 @@ setTimeout(function(){ if (!document.querySelector('.ecran.la')){ var e = docume
   const tactile = matchMedia('(pointer: coarse)').matches;
   const dedans = /WhatsApp|FBAN|FBAV|FB_IAB|Messenger|Instagram|Line\/|Snapchat|GSA\/|Twitter|MicroMessenger|; wv\)/i.test(ua);
   const safari = iOS && /Safari/i.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS|DuckDuckGo/i.test(ua) && !dedans;
+  /* ⚠️ 12 septembre, 21 h 40 — vu chez Elie : le navigateur integre de WhatsApp
+     sur iPhone ne dit pas son nom, et ne dit meme pas « Safari ». La page le
+     prenait pour « un autre navigateur » et lui faisait copier le lien. Sur
+     iPhone, un navigateur sans le mot Safari et sans nom connu, c'est une
+     application qui ouvre la page dans sa fenetre : on le traite comme WhatsApp. */
+  const fenetreDApp = iOS && !/Safari/i.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS|DuckDuckGo/i.test(ua);
 
   /* ═══ PRÉVENIR MICKAËL ═══════════════════════════════════════════════════
      Il veut savoir qui a ouvert le lien, et si l'installation a marché. Le site
@@ -359,10 +365,12 @@ setTimeout(function(){ if (!document.querySelector('.ecran.la')){ var e = docume
   })();
 
   if (enApp){ montrer('e-app'); return; }
-  if (dedans){
+  if (dedans || fenetreDApp){
     if (iOS){ document.getElementById('navNom').textContent = 'Safari'; document.getElementById('navNom2').textContent = 'Safari';
-      document.getElementById('troisPoints').textContent = 'trois points ⋯'; document.getElementById('ouCa').textContent = 'en bas ou en haut à droite';
-      document.getElementById('ouvrirDans').textContent = '« Ouvrir dans Safari »'; }
+      /* sur iPhone, dans WhatsApp, c'est le bouton Partager (le carre avec la fleche), en haut a droite */
+      document.getElementById('troisPoints').textContent = 'bouton Partager (le carré avec une flèche)'; document.getElementById('ouCa').textContent = 'en haut à droite';
+      document.getElementById('ouvrirDans').textContent = '« Ouvrir dans Safari »';
+      document.getElementById('pasAuto').textContent = 'Cette page se rouvre dans Safari : appuie alors sur Partager, puis « Sur l’écran d’accueil ».'; }
     montrer('e-dedans'); return;
   }
   if (iOS){ montrer(safari ? 'e-iphone' : 'e-iphone-autre'); return; }
