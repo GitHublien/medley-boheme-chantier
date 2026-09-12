@@ -813,6 +813,9 @@ function allerAuKaraoke(){
      traversees.) */
   const ou = !nom ? 'PRENOM — Bohème.html' : R.destination;
   const suite = q2.toString();
+  /* le film est fini : l'application reprend en portrait (la visite guidee le
+     verrouille elle-meme a son depart) */
+  try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch(e){}
   location.href = ou + (suite ? '?' + suite : '');
 }
 addEventListener('click', e => { if (demarre) partir(); });
@@ -976,30 +979,26 @@ setTimeout(() => {
   let dejaServi = false;      /* une seule fois, jamais deux */
   window.exigerPaysage = function(quandPret){
     if (dejaServi) return;
-    if (!portrait()){ dejaServi = true; quandPret(); return; }
+    if (!portrait()){ dejaServi = true;
+      try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {}); } catch(e){}
+      quandPret(); return; }
     ecran.style.display = 'flex';
     const veille = () => {
       if (portrait() || dejaServi) return;
       dejaServi = true;
       matchMedia('(orientation: portrait)').removeEventListener('change', veille);
       ecran.style.display = 'none';
+      /* tourne : on VERROUILLE le paysage pour toute la duree du film (Android ;
+         l'iPhone ignore l'ordre, mais il est deja tourne) */
+      try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {}); } catch(e){}
       quandPret();
     };
     matchMedia('(orientation: portrait)').addEventListener('change', veille);
-    /* LA SORTIE (7 sept) : un iPhone dont la rotation est verrouillée ne tournera jamais.
-       Après trois secondes, on propose de regarder le film debout : il passe entier,
-       avec des bandes noires en haut et en bas. Personne ne reste devant un mur. */
-    setTimeout(() => {
-      if (dejaServi || ecran.querySelector('.sortieDebout')) return;
-      const s = document.createElement('div'); s.className = 'sortieDebout';
-      s.textContent = 'Ou regarde-le comme ça, debout →';
-      s.style.cssText = 'margin-top:8px;padding:13px 22px;border-radius:999px;border:1px solid rgba(212,175,55,.7);'
-        + 'background:rgba(212,175,55,.14);color:#ffc814;font-size:clamp(15px,4.2vw,18px);font-weight:700;cursor:pointer;';
-      s.addEventListener('click', e => { e.stopPropagation(); if (dejaServi) return; dejaServi = true;
-        try { matchMedia('(orientation: portrait)').removeEventListener('change', veille); } catch(x){}
-        ecran.style.display = 'none'; quandPret(); });
-      ecran.appendChild(s);
-    }, 3000);
+    /* ⚠️ 12 septembre, 22 h 30 — Mickael : « je ne veux qu'un seul choix : l'ecran
+       plein. On ne peut pas regarder le film debout. » La sortie « regarde-le
+       debout » (7 septembre) est retiree. Sur un iPhone dont la rotation est
+       verrouillee, l'ecran « Tourne ton telephone » reste : c'est son choix, et
+       c'est a lui qu'on le dira sur WhatsApp. */
   };
 })();
 </script>
