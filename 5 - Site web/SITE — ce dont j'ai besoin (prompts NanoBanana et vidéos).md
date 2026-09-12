@@ -207,3 +207,35 @@ mais une faute dans une image ne se rattrape pas après coup.
 
 **Rien ne bloque en attendant :** le site tourne déjà avec des fonds dessinés. Chaque image
 apparaît d'elle-même dès que tu la déposes, une par une si tu veux.
+
+---
+
+# C · LES TROIS À REFAIRE (12 septembre, 19 h) — logo vrai, petit, en bas à droite
+
+*Mickaël : « Le medley des légendes n'est pas bon, la mise en scène a le logo trop gros,
+qui chante quoi n'a pas le vrai logo. » Les trois reprennent le gabarit de l'atelier :
+titre en bas à gauche, logo petit en bas à droite, une douche d'or, la brume, le noir.*
+
+**Références, dans cet ordre : `logo.png`, puis `site-images/06-karaoke.jpg`. Format 16:9.**
+En tête de chacun :
+
+> Use the two attached reference images. The first one is the official "Bohème Production" logo, a golden calligraphic letter B inside a golden circle. **Reproduce this logo exactly as it is, identical, unchanged, same shape, same lettering, same golden gradient. Do not redraw it, do not stylise it, do not alter a single letter.** The second one is a poster from the same series: **match its look exactly, same deep black stage, same single warm golden spotlight, same thin theatrical haze, same fine film grain, same placement of the title bottom-left and the small logo bottom-right.**
+> Place the reference logo small in the bottom-right corner, at about 9% of the image width, glowing softly, its transparent background blending into the black. No other text than specified, no watermark, no people, no faces.
+
+**01 — Le medley des légendes** → `01-scene.jpg`
+
+> Subject: an empty grand theatre stage seen from the audience, deep black, six narrow golden spotlights falling on the bare black floor in a gentle line, thin theatrical haze drifting through the beams, tiny gold dust in the light, vast empty darkness above.
+> Style: cinematic still, high-end editorial photography, deep black and warm gold only. Light: the six beams only, soft, no harsh highlights. Lens: 35mm at f/4, sharp, fine film grain.
+> Bottom-left, engraved in elegant thin golden serif capitals, large, perfectly spelled in French: "LE MEDLEY DES LÉGENDES". Just below it, much smaller, in thin letter-spaced golden capitals: "CANNES · 4 OCTOBRE 2026".
+
+**08 — La mise en scène** → `08-mise-en-scene.jpg`
+
+> Subject: a theatre stage seen from directly above like a floor plan, black floor, six small glowing gold marks placed in a gentle line, thin golden guide lines drawn in light across the floor, haze catching a single spotlight from above.
+> Style: cinematic still, high-end editorial photography, deep black and warm gold only. Light: one soft golden spotlight from above, the gold marks glowing. Lens: 50mm at f/4, sharp, fine film grain.
+> Bottom-left, engraved in elegant thin golden serif capitals, large, perfectly spelled in French: "LA MISE EN SCÈNE". Just below it, much smaller, in thin letter-spaced golden capitals, perfectly spelled in French: "qui est où, et quand".
+
+**16 — Qui chante quoi** → `16-qui-chante.jpg`
+
+> Subject: six different empty theatre chairs in a row on a black stage, each one under its own narrow golden spotlight, thin haze, the chairs slightly different from one another, warm wood and worn velvet, deep darkness around.
+> Style: cinematic still, high-end editorial photography, deep black and warm gold only. Light: six narrow golden beams from above, soft, no harsh highlights. Lens: 35mm at f/4, sharp, fine film grain.
+> Bottom-left, engraved in elegant thin golden serif capitals, large, perfectly spelled in French: "QUI CHANTE QUOI". Just below it, much smaller, in thin letter-spaced golden capitals, perfectly spelled in French: "le parcours de chacun".

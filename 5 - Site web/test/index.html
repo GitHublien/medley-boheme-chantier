@@ -72,16 +72,16 @@ vraie première fois. Les boutons ci-dessus, si.</p>
 <script>
 /* Toutes les traces laissées dans le téléphone, relevées une par une dans le site.
    Celles qui portent un tiret final sont des familles : boheme-vu-01, boheme-su-03… */
-const EXACTES = ['boheme-intro-vue-2','boheme-pour','boheme-tuto','boheme-bienvenue',
-  'boheme-bienvenue-vue','boheme-qui-vu','boheme-nom-demande','boheme-sans-nom',
+const EXACTES = ['boheme-intro-vue-3','boheme-pour','boheme-tuto','boheme-bienvenue',
+  'boheme-bienvenue-vue-2','boheme-qui-vu','boheme-nom-demande','boheme-sans-nom',
   'boheme-bande','boheme-bande-titre','boheme-bandeau-replie','boheme-histo','boheme-lier',
   'boheme-main','boheme-maj-tentee','boheme-medley-v3','boheme-presence','boheme-refaire',
   'boheme-reprise','boheme-sans-plein-ecran','boheme-theme-v3','boheme-plein-ecran'];
-const FAMILLES = ['boheme-aide-','boheme-prevenu-','boheme-su-','boheme-vu-'];
+const FAMILLES = ['boheme-aide-','boheme-prevenu2-','boheme-su-','boheme-vu-'];
 
 const LISIBLE = {
   'boheme-pour'         : 'Le prénom choisi',
-  'boheme-intro-vue-2'  : 'Le film a été vu',
+  'boheme-intro-vue-3'  : 'Le film a été vu',
   'boheme-tuto'         : 'Le tutoriel de l’atelier a été vu',
   'boheme-bienvenue'    : 'Les explications ont été lues',
   'boheme-theme-v3'     : 'Réglages d’affichage',
@@ -109,7 +109,7 @@ function etat(){
   const lignes = [];
   const nom = (() => { try { return localStorage.getItem('boheme-pour'); } catch(e){ return null; } })();
   lignes.push(['Prénom enregistré', nom ? nom : 'aucun', nom ? 'v' : 'r']);
-  const vue = (() => { try { return localStorage.getItem('boheme-intro-vue-2') === '1'; } catch(e){ return false; } })();
+  const vue = (() => { try { return localStorage.getItem('boheme-intro-vue-3') === '1'; } catch(e){ return false; } })();
   lignes.push(['Le film a déjà été vu', vue ? 'oui' : 'non', vue ? 'o' : 'r']);
   const enApp = matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches;
   lignes.push(['On est dans l’application', enApp ? 'oui' : 'non (navigateur)', enApp ? 'v' : 'r']);

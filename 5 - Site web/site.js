@@ -11,7 +11,7 @@
    version faux est pire qu'un compteur — il fait croire a une publication qui
    n'a pas eu lieu. Desormais l'heure est LUE sur la machine a chaque
    publication, jamais tapee. */
-const VERSION_SITE = '12/09/2026 · 21h20';
+const VERSION_SITE = '12/09/2026 · 21h22';
 (function(){
   const PAGES = [
     { f:'ACCUEIL — Bohème.html',        t:'Accueil',        g:'⌂', i:'maison', s:'le hall' },
@@ -499,7 +499,7 @@ const VERSION_SITE = '12/09/2026 · 21h20';
     const NUMERO = recu.getAttribute('data-recu');   /* numéro WhatsApp, format international sans + ; vide = il choisit */
     const qui = pour ? pour.charAt(0).toUpperCase() + pour.slice(1) : '';
     const lien = t => (NUMERO ? 'https://wa.me/' + NUMERO + '?text=' : 'https://wa.me/?text=') + encodeURIComponent(t);
-    const CLE = 'boheme-recu-dit';
+    const CLE = 'boheme-recu-dit-2';
     const dit = () => { try { return localStorage.getItem(CLE) === '1'; } catch(e){ return false; } };
 
     const bon  = (qui ? qui + ' : ' : '') + 'j\u2019ai bien l\u2019application Bohème, tout est OK pour moi.';

@@ -5,18 +5,18 @@ window.EN_APPLI = matchMedia('(display-mode: fullscreen), (display-mode: standal
 /* ═══ LA PREMIÈRE FOIS, ON VOIT L'INTRO ═══
    Quelqu'un reçoit son lien et arrive ici directement : on l'envoie
    d'abord voir le film, une seule fois. La porte note son passage
-   (boheme-intro-vue-2), et toutes les visites suivantes viennent
+   (boheme-intro-vue-3), et toutes les visites suivantes viennent
    droit à l'atelier. En local, sur l'ordinateur de travail, jamais
    de détour. Placé tout en haut : la redirection part avant même
    que la page ne se charge. */
 (function(){
   try {
     if (new URLSearchParams(location.search).get('premiere') === '1'){
-      localStorage.removeItem('boheme-intro-vue-2');
+      localStorage.removeItem('boheme-intro-vue-3');
       localStorage.removeItem('boheme-tuto');
     }
     if (!/github\.io$/i.test(location.hostname)) return;
-    if (localStorage.getItem('boheme-intro-vue-2') === '1') return;
+    if (localStorage.getItem('boheme-intro-vue-3') === '1') return;
     location.replace('PORTE — Bohème.html' + location.search);
   } catch(e){}
 })();
@@ -5669,7 +5669,7 @@ body[data-pour] #bandeau{ display:flex; }
   /* première visite : on propose, sans imposer — mais seulement si la carte de
      bienvenue est déjà passée, sinon les deux se marcheraient dessus */
   let deja = null, bienvenueVue = null;
-  try { deja = localStorage.getItem('boheme-tuto'); bienvenueVue = localStorage.getItem('boheme-bienvenue-vue'); } catch(e){}
+  try { deja = localStorage.getItem('boheme-tuto'); bienvenueVue = localStorage.getItem('boheme-bienvenue-vue-2'); } catch(e){}
   if (deja !== '1' && bienvenueVue === '1') setTimeout(proposer, 1400);
 })();
 </script>
@@ -6820,7 +6820,7 @@ const VERSION_APPLI = '11/09/2026 · 19h31';
 (function(){
   const carte = document.getElementById('bienvenueCarte');
   if (!carte) return;
-  const CLE = 'boheme-bienvenue-vue';
+  const CLE = 'boheme-bienvenue-vue-2';
   let deja = null;
   try { deja = localStorage.getItem(CLE); } catch(e){}
   const params = new URLSearchParams(location.search);

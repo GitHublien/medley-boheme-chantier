@@ -257,7 +257,7 @@ setTimeout(function(){ if (!document.querySelector('.ecran.la')){ var e = docume
      notifications gratuit, sur un sujet secret que seul son téléphone écoute
      (application ntfy, abonnée à ce sujet). Ce qui part : le prénom s'il est
      connu, le type de téléphone, et l'événement. Rien d'autre. */
-  const SUJET = 'boheme-f5185c6bbed275c0a0';
+  const SUJET = 'boheme-b2ebc8b427d107aa5d79';   /* 12 septembre 20 h 40 — nouveau sujet pour le vrai envoi */
   const appareil = iOS ? 'iPhone' : android ? 'Android' : (tactile ? 'téléphone' : 'ordinateur');
   const ou = dedans ? ' (dans WhatsApp)' : enApp ? ' (dans l\'application)' : '';
   const NOMS = { adrien:'Adrien', stephanie:'Stéphanie', candice:'Candice', mickael:'Mickaël', bry:'Bry', elie:'Élie' };
@@ -272,7 +272,7 @@ setTimeout(function(){ if (!document.querySelector('.ecran.la')){ var e = docume
   }
   /* une seule fois par téléphone et par événement, sinon Mickaël est noyé */
   function unique(cle, quoi, titre){
-    try { if (localStorage.getItem('boheme-prevenu-' + cle) === '1') return; localStorage.setItem('boheme-prevenu-' + cle, '1'); } catch(e){}
+    try { if (localStorage.getItem('boheme-prevenu2-' + cle) === '1') return; localStorage.setItem('boheme-prevenu2-' + cle, '1'); } catch(e){}
     prevenir(quoi, titre);
   }
   if (!enApp) unique('ouvert', 'ouvert', qui + ' a ouvert le lien');

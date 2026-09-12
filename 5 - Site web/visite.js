@@ -31,8 +31,8 @@
    termine. Elle ne bloque personne, jamais.
    ═══════════════════════════════════════════════════════════════════════════ */
 (function(){
-  const CLE_VUE = 'boheme-visite-vue';
-  const CLE_OU  = 'boheme-visite-ou';      /* ou il en etait, s'il a ete interrompu */
+  const CLE_VUE = 'boheme-visite-vue-2';
+  const CLE_OU  = 'boheme-visite-ou-2';      /* ou il en etait, s'il a ete interrompu */
   const DOSSIER = 'media/visite/';
 
   /* qui est là, et donc quelle voix lui parle */

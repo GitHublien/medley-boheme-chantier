@@ -483,14 +483,14 @@ window.EN_APPLI = matchMedia('(display-mode: fullscreen), (display-mode: standal
   }
   if (q.get('premiere') === '1'){
     try {
-      localStorage.removeItem('boheme-intro-vue-2');
+      localStorage.removeItem('boheme-intro-vue-3');
       localStorage.removeItem('boheme-tuto');
     } catch(e){}
     return;
   }
   if (q.get('revoir') === '1') return;
   try {
-    if (localStorage.getItem('boheme-intro-vue-2') === '1'){
+    if (localStorage.getItem('boheme-intro-vue-3') === '1'){
       location.replace('ACCUEIL — Bohème.html' + location.search);   /* le hall (7 sept) : le site est l'application */
       return;
     }
@@ -785,7 +785,7 @@ function allerAuKaraoke(){
   let nom = '';
   try {
     sessionStorage.setItem('boheme-plein-ecran', '1');
-    localStorage.setItem('boheme-intro-vue-2', '1');   /* l'intro est vue : plus de détour */
+    localStorage.setItem('boheme-intro-vue-3', '1');   /* l'intro est vue : plus de détour */
     nom = localStorage.getItem('boheme-pour') || '';
   } catch(e){}
   /* le ?pour=… du lien personnel suit jusqu'au bout ; premiere=1 a fait son

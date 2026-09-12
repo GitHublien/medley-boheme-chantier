@@ -1,0 +1,19 @@
+IMAGE : LE FILM — la tuile « Le Medley des Légendes, l'introduction en trois minutes »
+FORMAT : 4:3 (une seule image : la tuile est en 4:3 debout comme couché, mesuré sur ton téléphone)
+ENREGISTRER SOUS : site-images8-medley-film.jpg
+RÉFÉRENCES À DÉPOSER, dans l'ordre : « 1 - REFERENCE logo.png » puis « 3 - ACTUELLE film (carte-titre).jpg »
+
+----- PROMPT (tout copier ci-dessous) -----
+
+Use the two attached reference images. The first one is the official "Bohème Production" logo, a golden calligraphic letter B inside a golden circle. Reproduce this logo exactly as it is, identical, unchanged, same shape, same lettering, same golden gradient. Do not redraw it, do not stylise it, do not alter a single letter. The second one is the current title card of the film: keep its spirit, a black stage filled with crossing beams of light, golden sparks and gold dust everywhere, and the title in ornate golden lettering. Make it far more beautiful and far more spectacular.
+
+Subject: a 4:3 title card for a show. A black theatre stage seen from the audience, filled with dozens of crossing beams of warm golden and white-gold light rising from the floor and falling from above through thin haze, and above them a magnificent burst of golden fireworks: several large chrysanthemum bursts with long glittering trails, gold dust and sparks raining slowly down through the beams, tiny golden particles floating everywhere.
+Action: the peak instant of a finale, sparks still falling.
+Environment: vast black darkness behind the beams, the stage floor mirroring the gold, no people, no crowd, no city, no buildings.
+Style: cinematic still, high-end gala title card, luxurious and dramatic, palette of deep black, warm gold and white-gold only.
+Light: the beams and the fireworks light everything, warm and rich, strong contrast, no flat grey.
+Lens: 24mm at f/5.6, wide, sharp, fine film grain.
+
+Across the centre of the image, engraved in large elegant ornate golden serif capitals with a strong metallic shine and a soft golden glow, perfectly spelled in French: "LE MEDLEY DES LÉGENDES".
+Place the reference logo small in the bottom-right corner, at about 10% of the image width, glowing softly, its transparent background blending into the black.
+No other text than specified, no watermark, no people, no faces.
