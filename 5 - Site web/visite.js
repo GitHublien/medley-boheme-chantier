@@ -968,8 +968,13 @@
     });
   }
 
-  function finir(){
-    arrete = true; fil++;   /* tout ce qui revient d'avant est desormais perime */
+  /* 20 h 15 — Mickael : « il faut qu'ils puissent voir. » On garde la sortie,
+     mais elle revient : « j'arrete la » ne marque plus la visite comme vue. A la
+     prochaine ouverture de l'accueil, elle reprend d'elle-meme la ou elle en
+     etait. Seule une visite suivie jusqu'au bout compte comme vue. */
+  let depuisSommaire = false;
+  function finir(complete){
+    arrete = true; fil++;   /* tout ce que revient d'avant est desormais perime */
     libererOrientation();   /* « choisis le mode qui te va » : la visite finie, il tourne s'il veut */
     try { son.onended = son.onerror = null; } catch(e){}
     try { son.pause(); } catch(e){}
@@ -978,8 +983,11 @@
     effacerLeBonjour();
     eteindreLesHorloges();
     tourne.classList.remove('la');
-    try { localStorage.setItem(CLE_VUE, '1'); localStorage.removeItem(CLE_OU); } catch(e){}
+    if (complete){ try { localStorage.setItem(CLE_VUE, '1'); localStorage.removeItem(CLE_OU); } catch(e){} }
     rendreLaMusique();
+    const rs = document.querySelector('#vRetourSommaire'); if (rs) rs.hidden = true;
+    /* partie du sommaire : on y revient, que la visite soit finie ou arretee */
+    if (depuisSommaire){ depuisSommaire = false; const so = document.querySelector('#vSommaire'); if (so) so.hidden = false; }
   }
 
   /* ── LA MUSIQUE DU HALL, PENDANT QU'ON PARLE ───────────────────────────
@@ -1209,7 +1217,7 @@
     b.querySelector('.oui').addEventListener('click', () => {
       b.remove(); enPause = false; try { son.play(); } catch(e){}
     });
-    b.querySelector('.non').addEventListener('click', () => { b.remove(); enPause = false; finir(); });
+    b.querySelector('.non').addEventListener('click', () => { b.remove(); enPause = false; finir(false); });
   }
   document.addEventListener('pointerdown', e => {
     if (!document.body.classList.contains('enVisite')) return;
@@ -1229,7 +1237,7 @@
        minutes et demie a reecouter pour un coup de fil, personne ne le ferait
        deux fois. On note donc l'arret en cours a chaque pas. */
     try { localStorage.setItem(CLE_OU, JSON.stringify({ k: k, quand: Date.now() })); } catch(e){}
-    if (k >= ARRETS.length) return finir();
+    if (k >= ARRETS.length) return finir(true);
     const a = ARRETS[k];
     /* ⚠️ 12 septembre — NE PAS PARLER DE CE QUI N'EST PLUS LA.
        Mickael : « je ne vois meme plus le bouton rouge, pourquoi ca a disparu ? »
@@ -1500,8 +1508,7 @@
 
   entree.querySelector('.oui').addEventListener('click', lancer);
   entree.querySelector('.non').addEventListener('click', () => {
-    entree.classList.remove('la');
-    try { localStorage.setItem(CLE_VUE, '1'); localStorage.removeItem(CLE_OU); } catch(e){}
+    entree.classList.remove('la');   /* « une autre fois » : elle reviendra, sans etre marquee vue */
   });
   voile.addEventListener('click', e => e.stopPropagation());
 
@@ -1754,17 +1761,30 @@
     #vSommaire .fond{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; object-position:center; display:none; }
     @media (orientation:portrait){ #vSommaire .fond.portrait{ display:block; } }
     @media (orientation:landscape){ #vSommaire .fond.paysage{ display:block; } }
-    /* LA REGLE : une bande dure, pleine largeur, trait d'or, en bas */
-    #vSommaire .bande{ position:absolute; left:0; right:0; bottom:0; display:flex; align-items:stretch; gap:8px;
-      padding:8px 10px calc(env(safe-area-inset-bottom) + 8px); background:rgba(8,7,6,.97);
+    /* LA REGLE : une bande dure, pleine largeur, trait d'or, en bas.
+       20 h 15 — « le truc jaune immense, je n'aime pas du tout ; j'aurais prefere
+       en or aussi. » Deux boutons sobres, cercles d'or sur le noir, et le mot
+       « Sommaire » en or, a la police du site. */
+    #vSommaire .bande{ position:absolute; left:0; right:0; bottom:0; display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:9px 14px calc(env(safe-area-inset-bottom) + 9px); background:rgba(8,7,6,.97);
       border-top:1px solid rgba(212,175,55,.85); box-shadow:0 -1px 0 rgba(212,175,55,.25), 0 -12px 34px rgba(0,0,0,.6); }
-    #vSommaire .bande button{ display:flex; align-items:center; justify-content:center; gap:10px; border-radius:14px;
-      border:1px solid rgba(212,175,55,.5); background:rgba(212,175,55,.08); color:#f1d27a;
-      font:600 15px system-ui, sans-serif; padding:12px 16px; -webkit-tap-highlight-color:transparent; }
-    #vSommaire .bande button:active{ background:rgba(212,175,55,.22); }
-    #vSommaire .bande .x{ font-size:22px; line-height:1; }
-    #vSommaire .bande .fermer{ flex:0 0 auto; }
-    #vSommaire .bande .menu{ flex:1; background:linear-gradient(180deg,rgba(244,217,127,.95),rgba(201,161,58,.95)); color:#1a1408; border-color:transparent; }
+    #vSommaire .bande button{ display:flex; align-items:center; gap:12px; border:0; background:none; padding:0;
+      color:var(--or2, #f1d27a); font-family:var(--disp, serif); font-size:1.15rem; letter-spacing:.03em; -webkit-tap-highlight-color:transparent; }
+    #vSommaire .bande button .x{ width:44px; height:44px; border-radius:50%; display:grid; place-items:center;
+      border:1px solid rgba(212,175,55,.6); background:rgba(212,175,55,.08); font-size:20px; line-height:1;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.08); }
+    #vSommaire .bande button:active .x{ background:rgba(212,175,55,.25); }
+    #vSommaire .bande .fermer .mot{ display:none; }
+    #vSommaire .bande .menu{ flex-direction:row-reverse; }
+    /* le petit bouton d'or « Sommaire » pendant une visite partie du sommaire */
+    #vRetourSommaire{ position:fixed; right:12px; bottom:calc(env(safe-area-inset-bottom) + 104px); z-index:150;
+      display:flex; align-items:center; gap:8px; padding:8px 12px 8px 10px; border-radius:999px;
+      border:1px solid rgba(212,175,55,.6); background:rgba(8,7,6,.92); color:var(--or2, #f1d27a);
+      font-family:var(--disp, serif); font-size:.95rem; letter-spacing:.03em; box-shadow:0 8px 24px rgba(0,0,0,.6);
+      -webkit-tap-highlight-color:transparent; }
+    #vRetourSommaire[hidden]{ display:none !important; }
+    #vRetourSommaire .tr{ display:grid; gap:3px; } #vRetourSommaire .tr i{ display:block; width:14px; height:1.5px; background:var(--or2, #f1d27a); }
+    @media (orientation:landscape){ #vRetourSommaire{ bottom:calc(env(safe-area-inset-bottom) + 12px); } }
     /* 20 h — Mickael : « le tableau n'est pas beau, il ne prend pas tout l'ecran,
        il y a une place incroyable sous l'appareil photo. Fais-moi des pastilles en
        or, du vrai or. Regarde comment c'est fait sur le menu du site. » Le tiroir
@@ -1813,16 +1833,22 @@
       const b = document.createElement('button'); b.type = 'button';
       b.innerHTML = '<img alt="" src="site-images/pastilles/' + (k + 1) + '.png"><span></span>';
       b.querySelector('span').textContent = a.nom;
-      b.addEventListener('click', () => { fermerTout(); window.__visite.allerA(k); });
+      b.addEventListener('click', () => { fermerTout(); depuisSommaire = true; retourSommaire.hidden = false; window.__visite.allerA(k); });
       liste.appendChild(b);
     });
     sommaire.querySelector('.bande .menu').addEventListener('click', ouvrirTiroir);
     sommaire.querySelector('.fermerTiroir').addEventListener('click', fermerTiroir);
     sommaire.querySelector('.bande .fermer').addEventListener('click', fermerTout);
     sommaire.querySelector('.debut').addEventListener('click', () => {
-      fermerTout(); departA = 0; verrouillerPortrait(); montrerLeBonjour(lancer);
+      fermerTout(); depuisSommaire = true; retourSommaire.hidden = false; departA = 0; verrouillerPortrait(); montrerLeBonjour(lancer);
     });
   }
+  /* le petit bouton d'or « Sommaire », en bas a droite, pendant une visite partie du sommaire */
+  const retourSommaire = document.createElement('button');
+  retourSommaire.id = 'vRetourSommaire'; retourSommaire.className = 'visiteGarde'; retourSommaire.type = 'button'; retourSommaire.hidden = true;
+  retourSommaire.innerHTML = '<span class="tr"><i></i><i></i><i></i></span><span>Sommaire</span>';
+  document.body.appendChild(retourSommaire);
+  retourSommaire.addEventListener('click', () => { finir(false); });
 
   window.revoirLaVisite = () => {
     /* 19 h 50 — Mickael : « pourquoi je tombe tout de suite sur le guide ? »
