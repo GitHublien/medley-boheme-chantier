@@ -1741,8 +1741,9 @@
     +   '<button class="menu" type="button"><span class="x">\u2630</span><span class="mot">Sommaire de la visite</span></button>'
     + '</div>'
     + '<div class="tiroir" hidden>'
-    +   '<div class="tete"><h2>Sommaire de la visite</h2><button class="fermerTiroir" type="button" aria-label="Fermer le sommaire">\u2715</button></div>'
-    +   '<button class="debut" type="button">\u25B6 Depuis le d\u00e9but</button>'
+    +   '<div class="tete"><h2>Sommaire de la visite</h2>'
+    +     '<button class="fermerTiroir" type="button" aria-label="Fermer le sommaire"><img src="site-images/pastilles/croix.png" alt=""></button></div>'
+    +   '<button class="debut" type="button"><img src="site-images/pastilles/lecture.png" alt=""><span>Depuis le début</span><small>la visite entière</small></button>'
     +   '<div class="liste"></div>'
     + '</div>';
   document.body.appendChild(sommaire);
@@ -1764,33 +1765,41 @@
     #vSommaire .bande .x{ font-size:22px; line-height:1; }
     #vSommaire .bande .fermer{ flex:0 0 auto; }
     #vSommaire .bande .menu{ flex:1; background:linear-gradient(180deg,rgba(244,217,127,.95),rgba(201,161,58,.95)); color:#1a1408; border-color:transparent; }
-    /* le tiroir du sommaire, qui glisse par-dessus la photo */
-    #vSommaire .tiroir{ position:absolute; left:0; right:0; bottom:0; top:calc(env(safe-area-inset-top) + 8vh);
-      display:grid; grid-template-rows:auto auto 1fr; gap:10px;
-      padding:14px 14px calc(env(safe-area-inset-bottom) + 14px);
-      background:rgba(10,9,8,.96); border-top:1px solid rgba(212,175,55,.85); border-radius:22px 22px 0 0;
-      box-shadow:0 -20px 60px rgba(0,0,0,.7); backdrop-filter:blur(10px);
-      color:#f2ead6; font:400 15px/1.4 system-ui, sans-serif;
-      transform:translateY(100%); transition:transform .45s cubic-bezier(.2,.8,.2,1); }
+    /* 20 h — Mickael : « le tableau n'est pas beau, il ne prend pas tout l'ecran,
+       il y a une place incroyable sous l'appareil photo. Fais-moi des pastilles en
+       or, du vrai or. Regarde comment c'est fait sur le menu du site. » Le tiroir
+       prend tout l'ecran, appareil photo compris ; les rangs sont ceux du menu du
+       site (police d'affiche, fils d'or), les numeros sont les pastilles d'or. */
+    #vSommaire .tiroir{ position:absolute; inset:0; display:grid; grid-template-rows:auto auto 1fr; gap:0;
+      padding:calc(env(safe-area-inset-top) + 10px) calc(env(safe-area-inset-right) + 16px) calc(env(safe-area-inset-bottom) + 12px) calc(env(safe-area-inset-left) + 16px);
+      background:rgba(5,5,5,.94); backdrop-filter:blur(30px); -webkit-backdrop-filter:blur(30px);
+      color:#f2ead6; transform:translateY(100%); transition:transform .5s cubic-bezier(.2,.8,.2,1); }
     #vSommaire .tiroir.la{ transform:none; }
     #vSommaire .tiroir[hidden]{ display:grid !important; visibility:hidden; }
-    #vSommaire .tiroir .tete{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
-    #vSommaire .tiroir h2{ margin:0; color:#f1d27a; font:600 1.1rem system-ui; letter-spacing:.03em; }
-    #vSommaire .fermerTiroir{ width:44px; height:44px; border-radius:50%; border:1px solid rgba(212,175,55,.6);
-      background:rgba(212,175,55,.1); color:#f1d27a; font:400 24px/1 system-ui; display:grid; place-items:center; }
-    #vSommaire .debut{ border-radius:999px; border:0; padding:.85rem; font:700 1rem system-ui;
-      background:linear-gradient(180deg,#f4d97f,#c9a13a); color:#1a1408; }
-    #vSommaire .liste{ overflow:auto; -webkit-overflow-scrolling:touch; display:grid; gap:5px; align-content:start; }
-    #vSommaire .liste button{ display:flex; align-items:center; gap:10px; width:100%; text-align:left;
-      border-radius:10px; padding:12px 12px; font:600 15px system-ui; border:1px solid rgba(212,175,55,.22);
-      background:rgba(255,255,255,.04); color:#e8e0cc; -webkit-tap-highlight-color:transparent; }
-    #vSommaire .liste button:active{ background:rgba(212,175,55,.18); }
-    #vSommaire .liste button i{ font-style:normal; color:#cbbf9c; min-width:2ch; text-align:right; }
+    #vSommaire .tiroir .tete{ display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:6px 0 12px; border-bottom:1px solid rgba(212,175,55,.35); }
+    #vSommaire .tiroir h2{ margin:0; color:var(--or2, #f1d27a); font-family:var(--disp, serif); font-weight:400;
+      font-size:clamp(1.5rem, 5.5vw, 2.2rem); letter-spacing:.04em; }
+    #vSommaire .fermerTiroir{ width:52px; height:52px; padding:0; border:0; background:none; -webkit-tap-highlight-color:transparent; }
+    #vSommaire .fermerTiroir img{ width:100%; height:100%; display:block; filter:drop-shadow(0 4px 10px rgba(0,0,0,.6)); }
+    #vSommaire .debut{ display:flex; align-items:center; gap:14px; padding:14px 0; border:0; border-bottom:1px solid rgba(212,175,55,.35);
+      background:none; color:var(--or2, #f1d27a); text-align:left; -webkit-tap-highlight-color:transparent; }
+    #vSommaire .debut img{ width:56px; height:56px; flex:none; filter:drop-shadow(0 4px 10px rgba(0,0,0,.6)); }
+    #vSommaire .debut span{ font-family:var(--disp, serif); font-size:clamp(1.35rem, 4.6vw, 1.9rem); }
+    #vSommaire .debut small{ margin-left:auto; font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--gris, #a89f8c); }
+    #vSommaire .liste{ overflow:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; display:block; }
+    #vSommaire .liste button{ display:flex; align-items:center; gap:14px; width:100%; text-align:left;
+      padding:10px 0; border:0; border-bottom:1px solid rgba(212,175,55,.18); background:none; color:#ece4d0;
+      font-family:var(--disp, serif); font-size:clamp(1.2rem, 4.2vw, 1.7rem); -webkit-tap-highlight-color:transparent; }
+    #vSommaire .liste button:active{ color:var(--or2, #f1d27a); }
+    #vSommaire .liste button img{ width:46px; height:46px; flex:none; filter:drop-shadow(0 3px 8px rgba(0,0,0,.6)); }
+    #vSommaire .liste button:last-child{ border-bottom:0; }
     @media (orientation:landscape){
-      #vSommaire .tiroir{ top:calc(env(safe-area-inset-top) + 6px); left:8vw; right:8vw;
-        grid-template-columns:auto 1fr; grid-template-rows:auto 1fr; grid-template-areas:"tete tete" "debut liste"; }
-      #vSommaire .tiroir .tete{ grid-area:tete; } #vSommaire .debut{ grid-area:debut; align-self:start; }
+      #vSommaire .tiroir{ grid-template-columns:minmax(220px, 34%) 1fr; grid-template-rows:auto 1fr; column-gap:24px;
+        grid-template-areas:"tete tete" "debut liste"; }
+      #vSommaire .tiroir .tete{ grid-area:tete; } #vSommaire .debut{ grid-area:debut; align-self:start; border-bottom:0; }
       #vSommaire .liste{ grid-area:liste; }
+      #vSommaire .liste button img{ width:40px; height:40px; } #vSommaire .liste button{ padding:7px 0; }
     }`;
   document.head.appendChild(styleSommaire);
   {
@@ -1802,7 +1811,8 @@
     ARRETS.forEach((a, k) => {
       if (!a.nom) return;
       const b = document.createElement('button'); b.type = 'button';
-      b.innerHTML = '<i>' + (k + 1) + '</i><span></span>'; b.querySelector('span').textContent = a.nom;
+      b.innerHTML = '<img alt="" src="site-images/pastilles/' + (k + 1) + '.png"><span></span>';
+      b.querySelector('span').textContent = a.nom;
       b.addEventListener('click', () => { fermerTout(); window.__visite.allerA(k); });
       liste.appendChild(b);
     });
