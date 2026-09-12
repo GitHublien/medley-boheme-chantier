@@ -1,9 +1,0 @@
-IMAGE : 08 - LA MISE EN SCÈNE — RETOUCHE de l'image actuelle (méthode conseillée)
-FORMAT : 4:3 (comme les autres tuiles)
-ENREGISTRER SOUS : site-images\08-mise-en-scene.jpg
-
-RÉFÉRENCES À DÉPOSER, dans l'ordre : « 1 - REFERENCE logo.png » puis « 3 - ACTUELLE 08 mise en scene.jpg »
-
------ PROMPT (tout copier ci-dessous) -----
-
-Use the two attached images. The first one is the official "Bohème Production" logo, a golden calligraphic letter B inside a golden circle. The second one is the poster to edit. Keep the second image exactly as it is: same scene, same composition, same light, same haze, same grain, same title text and same title position. Change only one thing: the golden logo at the bottom right is far too large; remove it and put the reference logo in its place, much smaller. Reproduce the logo exactly as it is, identical, unchanged, same shape, same lettering, same golden gradient, do not redraw it, do not stylise it. Place it small in the bottom-right corner, at about 9% of the image width, glowing softly, its transparent background blending into the black. Do not add any other text, no watermark, no people, no faces.

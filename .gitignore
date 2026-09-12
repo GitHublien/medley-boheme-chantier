@@ -8,3 +8,15 @@
 !/.github/
 
 # et dans le site, on garde tout
+
+# 12 septembre — le travail de fabrication reste sur le disque, pas en ligne
+/5 - Site web/À FAIRE DANS FLOW*/
+/5 - Site web/_ARCHIVES-images/
+/5 - Site web/media/visite/_ecoute-pro-ou-flash/
+/5 - Site web/media/visite/_perimees*/
+/5 - Site web/media/visite/_avec-silences/
+/5 - Site web/media/visite/_essais/
+/5 - Site web/media/visite/_voix-origine/
+/5 - Site web/media/visite/*.wav
+/5 - Site web/MESSAGE WHATSAPP*
+/5 - Site web/PROMPT FLOW*
