@@ -273,7 +273,7 @@ setTimeout(function(){ if (!document.querySelector('.ecran.la')){ var e = docume
       const h = new Date(); const heure = h.getHours() + 'h' + String(h.getMinutes()).padStart(2,'0');
       fetch('https://ntfy.sh/' + SUJET, { method:'POST', mode:'no-cors',
         headers:{ 'Title': titre, 'Tags': quoi === 'installe' ? 'white_check_mark' : 'door' },
-        body: qui + ' — ' + appareil + ou + ' — ' + heure });
+        body: qui + ' — ' + appareil + ou + ' — ' + heure + (ecranVu() ? ' — écran : ' + ecranVu() : '') });
     } catch(e){}
   }
   /* une seule fois par téléphone et par événement, sinon Mickaël est noyé */
@@ -281,7 +281,15 @@ setTimeout(function(){ if (!document.querySelector('.ecran.la')){ var e = docume
     try { if (localStorage.getItem('boheme-prevenu2-' + cle) === '1') return; localStorage.setItem('boheme-prevenu2-' + cle, '1'); } catch(e){}
     prevenir(quoi, titre);
   }
-  if (!enApp) unique('ouvert', 'ouvert', qui + ' a ouvert le lien');
+  /* 12 septembre, 22 h 30 — Mickael : « le probleme, c'est que je ne sais pas
+     ce qu'il voit. » La notification attend que l'ecran soit choisi, et dit
+     lequel (« Il faut Safari », « Un dernier geste »…). Une fois par telephone
+     ET par ecran : si Elie change d'ecran, Mickael le saura. */
+  function ecranVu(){ try { const e = document.querySelector('.ecran.la'); return e ? (e.querySelector('h1') || e).textContent.replace(/\s+/g, ' ').trim().slice(0, 40) : ''; } catch(x){ return ''; } }
+  if (!enApp) setTimeout(() => {
+    const e = document.querySelector('.ecran.la'); const id = e ? e.id : 'inconnu';
+    unique('ouvert-' + id, 'ouvert', qui + ' a ouvert le lien');
+  }, 1500);
   window.addEventListener('appinstalled', () => unique('installe', 'installe', qui + ' a installé Bohème'));
   /* sur iPhone, Apple ne dit jamais « installé » : c'est la première ouverture EN application qui le dit */
   if (enApp) unique('installe', 'installe', qui + ' a installé Bohème');
