@@ -1777,7 +1777,9 @@
     #vSommaire .bande .fermer .mot{ display:none; }
     #vSommaire .bande .menu{ flex-direction:row-reverse; }
     /* le petit bouton d'or « Sommaire » pendant une visite partie du sommaire */
-    #vRetourSommaire{ position:fixed; right:12px; bottom:calc(env(safe-area-inset-bottom) + 104px); z-index:150;
+    /* 20 h 30 — « il faut qu'il reste allume, il s'eteint avec les ombres » : il
+       etait au meme niveau que le voile sombre de la visite. Au-dessus, toujours. */
+    #vRetourSommaire{ position:fixed; right:12px; bottom:calc(env(safe-area-inset-bottom) + 104px); z-index:199; opacity:1 !important;
       display:flex; align-items:center; gap:8px; padding:8px 12px 8px 10px; border-radius:999px;
       border:1px solid rgba(212,175,55,.6); background:rgba(8,7,6,.92); color:var(--or2, #f1d27a);
       font-family:var(--disp, serif); font-size:.95rem; letter-spacing:.03em; box-shadow:0 8px 24px rgba(0,0,0,.6);
