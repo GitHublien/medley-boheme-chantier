@@ -126,7 +126,7 @@ a.discret{ color:var(--gris); font-size:.95rem; text-decoration:underline; text-
   <h1>Un dernier geste, <span class="it">et c'est chez toi.</span></h1>
   <p>Tu as ouvert le lien <b>dans WhatsApp</b>, et le navigateur de WhatsApp ne sait pas installer d'application. Il faut l'ouvrir dans <b id="navNom">Chrome</b>. C'est simple :</p>
   <div class="pas">
-    <div><b class="n">1</b><span>Appuie sur les <b id="troisPoints">trois points ⋮</b>, <b id="ouCa">en haut à droite</b>.</span></div>
+    <div><b class="n">1</b><span>Appuie sur <b id="troisPoints">les trois points ⋮</b>, <b id="ouCa">en haut à droite</b>.</span></div>
     <div><b class="n">2</b><span>Choisis <b id="ouvrirDans">« Ouvrir dans Chrome »</b>, ou « Ouvrir dans le navigateur ».</span></div>
     <div><b class="n">3</b><span id="pasAuto">Cette page se rouvre, et l'installation <b>part toute seule</b>.</span></div>
   </div>
@@ -368,7 +368,7 @@ setTimeout(function(){ if (!document.querySelector('.ecran.la')){ var e = docume
   if (dedans || fenetreDApp){
     if (iOS){ document.getElementById('navNom').textContent = 'Safari'; document.getElementById('navNom2').textContent = 'Safari';
       /* sur iPhone, dans WhatsApp, c'est le bouton Partager (le carre avec la fleche), en haut a droite */
-      document.getElementById('troisPoints').textContent = 'bouton Partager (le carré avec une flèche)'; document.getElementById('ouCa').textContent = 'en haut à droite';
+      document.getElementById('troisPoints').textContent = 'le bouton Partager (le carré avec une flèche)'; document.getElementById('ouCa').textContent = 'en haut à droite';
       document.getElementById('ouvrirDans').textContent = '« Ouvrir dans Safari »';
       document.getElementById('pasAuto').textContent = 'Cette page se rouvre dans Safari : appuie alors sur Partager, puis « Sur l’écran d’accueil ».'; }
     montrer('e-dedans'); return;
