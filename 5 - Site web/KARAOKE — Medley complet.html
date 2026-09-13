@@ -5650,15 +5650,15 @@ body[data-pour] #bandeau{ display:flex; }
       }
       tp.innerHTML = '<span style="display:block;width:5px;height:5px;border-radius:50%;background:#d4af37;box-shadow:-9px 0 0 #d4af37, 9px 0 0 #d4af37"></span>';
       const cadre = document.createElement('div');
-      cadre.style.cssText = 'display:none;position:relative;width:100%;max-width:340px;margin-top:14px;padding:16px 10px 10px;border-radius:16px;'
+      cadre.style.cssText = 'display:none;position:relative;width:100%;max-width:340px;margin-top:18px;padding:16px 10px 10px;border-radius:16px;'
         + 'background:rgba(10,9,8,.98);border:1px solid rgba(212,175,55,.3);box-shadow:0 18px 50px rgba(0,0,0,.7)';
       const croix = document.createElement('button'); croix.type = 'button'; croix.textContent = '✕';
       croix.setAttribute('aria-label', 'Refermer');
       /* 14 h — Mickael : « un cercle rond, noir, derriere la croix, plus en haut,
          sans empieter, et qu'on sache qu'on appuie ». A cheval sur le coin haut
          droit du cadre, bord d'or, ombre ; a l'appui il s'enfonce et s'eclaire. */
-      croix.style.cssText = 'position:absolute;top:-18px;right:-8px;width:40px;height:40px;min-width:40px;flex:none;box-sizing:border-box;border-radius:50%;'
-        + 'border:1.5px solid #d4af37;background:#0a0908;color:#f1d27a;font:400 20px/1 system-ui;cursor:pointer;padding:0;'
+      croix.style.cssText = 'position:absolute;top:-22px;right:-6px;width:32px;height:32px;min-width:32px;flex:none;box-sizing:border-box;border-radius:50%;'
+        + 'border:1.5px solid #d4af37;background:#0a0908;color:#f1d27a;font:400 16px/1 system-ui;cursor:pointer;padding:0;'
         + 'display:grid;place-items:center;box-shadow:0 6px 18px rgba(0,0,0,.8), 0 0 0 3px rgba(10,9,8,1);'
         + 'transition:transform .12s, box-shadow .12s, background .12s;-webkit-tap-highlight-color:transparent';
       const appuie = () => { croix.style.transform = 'scale(.88)'; croix.style.background = 'rgba(212,175,55,.35)'; croix.style.boxShadow = '0 0 16px rgba(241,210,122,.9), 0 0 0 3px rgba(10,9,8,1)'; };
