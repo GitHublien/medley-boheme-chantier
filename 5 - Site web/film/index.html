@@ -31,6 +31,14 @@
   .filet{ width:min(520px,80%); height:1px; margin:1.6rem 0 1rem; background:linear-gradient(90deg,transparent,var(--or),transparent); }
   .pied{ color:var(--gris); font-size:.82rem; letter-spacing:.14em; text-transform:uppercase; text-align:center; }
   .charge{ display:none; margin-top:.8rem; color:var(--or2); font-size:.9rem; }
+  /* le bouton Lecture en or, posé sur l'affiche */
+  .cadre{ position:relative; }
+  .lire{ position:absolute; inset:0; display:grid; place-items:center; background:rgba(0,0,0,.25); cursor:pointer; border:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  .lire span{ width:92px; height:92px; border-radius:50%; display:grid; place-items:center; background:rgba(8,7,6,.85); border:2px solid var(--or2);
+              box-shadow:0 0 30px rgba(241,210,122,.55); color:var(--or2); font-size:38px; padding-left:8px; transition:transform .15s; }
+  .lire:active span{ transform:scale(.92); }
+  .lire[hidden]{ display:none; }
+  video:fullscreen, video:-webkit-full-screen{ width:100vw; height:100vh; object-fit:contain; background:#000; }
 </style>
 </head>
 <body>
@@ -38,10 +46,11 @@
   <h1>Le Medley des Légendes</h1>
   <p class="sous">Le film · 3 min 01</p>
   <div class="cadre">
-    <video id="film" controls playsinline preload="metadata" poster="../site-images/18-medley-film.jpg"></video>
+    <video id="film" playsinline preload="metadata" poster="../site-images/18-medley-film.jpg"></video>
+    <button class="lire" id="lire" aria-label="Lecture"><span>▶</span></button>
   </div>
   <div class="charge" id="charge">Le film charge… il repart tout seul.</div>
-  <p class="aide"><b>Monte le son</b>, et tourne le téléphone pour le voir en grand. Tu peux mettre en pause, revenir en arrière ou passer en plein écran avec les commandes du lecteur.</p>
+  <p class="aide"><b>Monte le son</b>, puis appuie sur Lecture : le film se met tout seul en grand écran. Tu peux mettre en pause ou revenir en arrière avec les commandes ; pour sortir, quitte le plein écran.</p>
   <div class="filet"></div>
   <p class="pied">Bohème Production · Cannes · 4 octobre 2026</p>
 <script>
@@ -57,6 +66,41 @@
   const cacher = () => { clearTimeout(t); c.style.display = 'none'; };
   film.addEventListener('waiting', montrer); film.addEventListener('stalled', montrer);
   film.addEventListener('playing', cacher); film.addEventListener('canplay', cacher); film.addEventListener('ended', cacher);
+
+  /* ── PLEIN ÉCRAN, COUCHÉ, SANS BARRE (13 septembre, 14 h 30) ─────────────
+     Mickaël : « dès qu'on appuie sur Lecture, il se met en grand écran, sans le
+     bandeau du navigateur ; on peut le contrôler ; et quand on quitte le plein
+     écran, il se remet droit et il n'y a plus de vidéo. »
+     Android : le plein écran a le droit de coucher le téléphone lui-même.
+     iPhone : Apple ouvre son propre lecteur plein écran, qui cache Safari et
+     suit la rotation. À la sortie : pause, retour au début, téléphone libéré. */
+  const lire = document.getElementById('lire');
+  const iOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  function entrerPleinEcran(){
+    try {
+      if (iOS && film.webkitEnterFullscreen){ film.webkitEnterFullscreen(); return; }
+      const f = film.requestFullscreen || film.webkitRequestFullscreen;
+      if (f){ const r = f.call(film); if (r && r.then) r.catch(() => {}); }
+      if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {});
+    } catch(e){}
+  }
+  lire.addEventListener('click', () => {
+    lire.hidden = true;
+    film.controls = true;               /* les commandes, pour le piloter */
+    entrerPleinEcran();
+    film.play().catch(() => {});
+  });
+  function sortie(){
+    /* on quitte le plein écran : le film s'arrête, le téléphone se redresse */
+    if (document.fullscreenElement || document.webkitFullscreenElement) return;
+    try { film.pause(); film.currentTime = 0; } catch(e){}
+    try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch(e){}
+    film.controls = false; lire.hidden = false;
+  }
+  document.addEventListener('fullscreenchange', sortie);
+  document.addEventListener('webkitfullscreenchange', sortie);
+  film.addEventListener('webkitendfullscreen', sortie);   /* le lecteur d'Apple */
+  film.addEventListener('ended', () => { try { if (document.exitFullscreen && document.fullscreenElement) document.exitFullscreen(); else if (film.webkitExitFullscreen) film.webkitExitFullscreen(); } catch(e){} });
 })();
 </script>
 </body>
