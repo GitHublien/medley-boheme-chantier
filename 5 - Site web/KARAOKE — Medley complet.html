@@ -5625,30 +5625,30 @@ body[data-pour] #bandeau{ display:flex; }
     const non = document.createElement('button');
     non.textContent = 'Non merci';
     non.onclick = () => {
-      /* on insiste un peu, sans obliger */
+      /* 13 h 40 — Mickael : « tu montres le point d'interrogation, sans cliquer,
+         et les trois petits points qui y amenent. Et rien de colle. » Deux
+         pastilles dessinees comme dans la barre, une fleche entre les deux,
+         aucune n'est un bouton. */
       titre.textContent = 'Tu es sûr ?';
+      const rond = (dedans) => '<span style="display:inline-grid;place-items:center;width:52px;height:52px;border-radius:50%;'
+        + 'border:1px solid rgba(212,175,55,.6);background:rgba(212,175,55,.10);box-shadow:0 0 12px rgba(212,175,55,.25);vertical-align:middle">' + dedans + '</span>';
+      const troisPoints = rond('<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#d4af37;box-shadow:-9px 0 0 #d4af37, 9px 0 0 #d4af37"></span>');
+      const question = rond('<img src="site-images/icones-karaoke/question.png" alt="?" style="width:26px;height:26px;display:block">');
       texte.innerHTML =
-        'Je te le conseille vraiment pour ta première fois : le guide évite de chercher pendant des jours ce qui est expliqué en cinq minutes.<br><br>'
-        + 'Si ton choix reste non, aucun problème : tu retrouveras le guide quand tu veux, en bas de l’atelier, avec ce bouton :';
-      /* 13 h 25 — Mickael : « tu montres le point d'interrogation exactement
-         comme sur l'application. » Une copie fidele du vrai bouton, cliquable. */
-      try {
-        const vrai = document.getElementById('btnTuto');
-        if (vrai){
-          const rangee = document.createElement('div');
-          rangee.style.cssText = 'display:flex;justify-content:center;margin:.8rem 0 .2rem;';
-          const copie = vrai.cloneNode(true);
-          copie.id = ''; copie.style.cssText = vrai.style.cssText + ';transform:scale(1.35);margin:.4rem 0;';
-          copie.addEventListener('click', () => { location.href = 'TUTORIEL — Bohème.html' + location.search; });
-          rangee.appendChild(copie); texte.appendChild(rangee);
-        }
-      } catch(e){}
+        'Je te le conseille vraiment pour ta première fois : le guide évite de chercher pendant des jours ce qui est expliqué en cinq minutes.'
+        + '<div style="margin:1.1rem 0 .6rem">Si ton choix reste non, aucun problème : tu retrouveras le guide quand tu veux, en bas de l’atelier.</div>'
+        + '<div style="display:flex;align-items:center;justify-content:center;gap:14px;margin:.9rem 0 1.2rem">'
+        +   '<div style="text-align:center">' + troisPoints + '<div style="font-size:.72rem;color:#b9b2a0;margin-top:.35rem">les trois points</div></div>'
+        +   '<span style="color:#d4af37;font-size:1.6rem;line-height:1;padding-bottom:1.2rem">→</span>'
+        +   '<div style="text-align:center">' + question + '<div style="font-size:.72rem;color:#b9b2a0;margin-top:.35rem">le guide</div></div>'
+        + '</div>';
       boutons.innerHTML = '';
+      boutons.style.display = 'grid'; boutons.style.gap = '.7rem'; boutons.style.marginTop = '.4rem';
       const oui2 = document.createElement('button');
-      oui2.className = 't-oui'; oui2.textContent = 'D’accord, je fais le guide';
+      oui2.className = 't-oui'; oui2.textContent = 'D’accord, j’ai changé d’avis : je fais le guide';
       oui2.onclick = () => { location.href = 'TUTORIEL — Bohème.html' + location.search; };
       const non2 = document.createElement('button');
-      non2.textContent = 'Pas maintenant';
+      non2.textContent = 'Non, pas maintenant';
       non2.onclick = finir;
       boutons.appendChild(oui2); boutons.appendChild(non2);
     };
