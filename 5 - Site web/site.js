@@ -11,7 +11,7 @@
    version faux est pire qu'un compteur — il fait croire a une publication qui
    n'a pas eu lieu. Desormais l'heure est LUE sur la machine a chaque
    publication, jamais tapee. */
-const VERSION_SITE = '13/09/2026 · 10h43';
+const VERSION_SITE = '13/09/2026 · 10h57';
 (function(){
   const PAGES = [
     { f:'ACCUEIL — Bohème.html',        t:'Accueil',        g:'⌂', i:'maison', s:'le hall' },
@@ -552,8 +552,14 @@ const VERSION_SITE = '13/09/2026 · 10h43';
       document.addEventListener('visibilitychange', () => { if (document.visibilityState !== 'visible') clearTimeout(secours); }, { once: true });
       try { location.href = direct; } catch(x){ clearTimeout(secours); window.open(a.href, '_blank', 'noopener'); }
     };
-    recu.addEventListener('click', e => ouvrirWhatsApp(recu, bon)(e));
-    pb.addEventListener('click', e => ouvrirWhatsApp(pb, souci + ' ')(e));
+    /* iPhone : on ne change RIEN. wa.me y ouvre deja l'application WhatsApp
+       sans onglet, et un whatsapp:// rate y afficherait une alerte de Safari.
+       Le detour direct ne vaut que pour Android. */
+    const surAndroid = /Android/i.test(navigator.userAgent);
+    if (surAndroid){
+      recu.addEventListener('click', e => ouvrirWhatsApp(recu, bon)(e));
+      pb.addEventListener('click', e => ouvrirWhatsApp(pb, souci + ' ')(e));
+    }
 
     /* ═══ ON NE CROIT PLUS LE CLIC : ON DEMANDE (12 septembre 2026) ═══
        Mickaël : « si Bry, ou n'importe qui, va sur WhatsApp et finalement change
