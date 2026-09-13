@@ -761,6 +761,15 @@ $('bSon').addEventListener('click', e => {
   $('bSon').style.opacity = film.muted ? .24 : .5;
 });
 
+/* la chute d'Elie se precharge pendant le film, pour etre prete au clic */
+(function(){
+  let qui = '';
+  try { qui = (new URLSearchParams(location.search).get('pour') || localStorage.getItem('boheme-pour') || '').toLowerCase(); } catch(e){}
+  if (qui !== 'elie') return;
+  const precharger = () => { try { passage.preload = 'auto'; passage.load(); } catch(e){} };
+  film.addEventListener('playing', precharger, { once: true });
+})();
+
 /* ─── LE DÉPART : LA CHUTE ─────────────────────────────────────── */
 function partir(){
   if (parti || !relais || !demarre) return;
@@ -784,7 +793,14 @@ function partir(){
      s'approche et s'éclaire, 1,6 s), qui était déjà la sortie de secours. */
   let pourQui = '';
   try { pourQui = (new URLSearchParams(location.search).get('pour') || localStorage.getItem('boheme-pour') || '').toLowerCase(); } catch(e){}
-  const chuteElie = pourQui === 'elie' ? passage.play() : Promise.reject(new Error('pas Élie'));
+  /* ⚠️ 13 septembre — Elie, iPhone : « il clique sur le logo, rien ne se passe. »
+     La video de la chute ne se chargeait qu'au clic (preload none, 6 Mo) : sur
+     un reseau lent, play() attendait sans fin, et rien ne suivait. Deux
+     garde-fous : elle est prechargee pendant le film (plus bas), et si elle
+     n'a pas demarre en 2,5 s, on prend la sortie sobre, comme les cinq autres. */
+  const chuteElie = pourQui === 'elie'
+    ? Promise.race([ passage.play(), new Promise((_, rej) => setTimeout(() => rej(new Error('chute trop lente')), 2500)) ])
+    : Promise.reject(new Error('pas Élie'));
   passage.muted = film.muted;
   passage.volume = 1;
   chuteElie.then(() => {
