@@ -5629,7 +5629,20 @@ body[data-pour] #bandeau{ display:flex; }
       titre.textContent = 'Tu es sûr ?';
       texte.innerHTML =
         'Je te le conseille vraiment pour ta première fois : le guide évite de chercher pendant des jours ce qui est expliqué en cinq minutes.<br><br>'
-        + 'Si tu n’as pas le temps maintenant, aucun problème : tu le retrouveras quand tu veux avec le bouton <b>?</b>, en bas de l’atelier.';
+        + 'Si ton choix reste non, aucun problème : tu retrouveras le guide quand tu veux, en bas de l’atelier, avec ce bouton :';
+      /* 13 h 25 — Mickael : « tu montres le point d'interrogation exactement
+         comme sur l'application. » Une copie fidele du vrai bouton, cliquable. */
+      try {
+        const vrai = document.getElementById('btnTuto');
+        if (vrai){
+          const rangee = document.createElement('div');
+          rangee.style.cssText = 'display:flex;justify-content:center;margin:.8rem 0 .2rem;';
+          const copie = vrai.cloneNode(true);
+          copie.id = ''; copie.style.cssText = vrai.style.cssText + ';transform:scale(1.35);margin:.4rem 0;';
+          copie.addEventListener('click', () => { location.href = 'TUTORIEL — Bohème.html' + location.search; });
+          rangee.appendChild(copie); texte.appendChild(rangee);
+        }
+      } catch(e){}
       boutons.innerHTML = '';
       const oui2 = document.createElement('button');
       oui2.className = 't-oui'; oui2.textContent = 'D’accord, je fais le guide';
