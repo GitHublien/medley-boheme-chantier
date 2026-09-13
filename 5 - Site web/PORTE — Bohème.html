@@ -323,6 +323,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000 !important;
     (Sur ordinateur, ce même lien s'utilise directement dans le navigateur.)</div>
 </div>
 
+<div id="filmPanne" style="display:none;position:fixed;inset:0;z-index:59;background:rgba(0,0,0,.92);
+  flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:8vw;text-align:center;">
+  <div style="font-size:clamp(18px,5vw,24px);font-weight:800;color:#f1d27a;">Le film ne démarre pas</div>
+  <div style="font-size:clamp(14px,3.8vw,17px);color:#e8e2d2;max-width:520px;line-height:1.5;">
+    Ton téléphone n'a pas encore lancé la lecture (réseau lent, ou lecture refusée). Un appui, et on réessaie.</div>
+  <button id="filmPanneRetry" type="button" style="padding:14px 28px;border-radius:999px;border:0;background:#d4af37;color:#111;font-weight:700;font-size:16px;">Réessayer</button>
+  <button id="filmPanneSuite" type="button" style="display:none;padding:10px 20px;border-radius:999px;border:1px solid rgba(212,175,55,.6);background:none;color:#f1d27a;font-size:14px;">Continuer sans le film</button>
+</div>
 <div id="ecranPaysage" style="display:none;position:fixed;inset:0;z-index:58;
   background:#000;flex-direction:column;align-items:center;justify-content:center;
   gap:22px;padding:8vw;text-align:center;">
@@ -331,6 +339,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000 !important;
     Tourne ton téléphone</div>
   <div style="font-size:clamp(14px,3.8vw,17px);color:#e8e2d2;">
     Le film se regarde en <b>mode paysage</b></div>
+  <div id="conseilRotation" style="display:none;max-width:520px;font-size:clamp(13px,3.6vw,16px);color:#e8e2d2;line-height:1.5;
+       border:1px solid rgba(212,175,55,.45);border-radius:14px;padding:12px 16px;background:rgba(212,175,55,.08);">
+    Ton téléphone ne tourne pas ? <b style="color:#f1d27a">Active la rotation automatique</b> : fais glisser
+    le haut de l'écran vers le bas, et appuie sur le bouton <b>Rotation auto</b>. Puis tourne-le.
+  </div>
 </div>
 <style>
 @keyframes tourneTel{0%,100%{transform:rotate(0)}50%{transform:rotate(90deg)}}
@@ -575,10 +588,44 @@ $('bPlein').addEventListener('click', e => {
   else pleinEcran();
 });
 
+/* ═══ PRÉVENIR MICKAËL DEPUIS LA PORTE (13 septembre, 18 h 45) ═══
+   Jusqu'ici, seule la page d'installation prévenait ; après « C'est installé ! »,
+   plus rien : impossible de savoir pourquoi le film restait noir chez quelqu'un.
+   Désormais la porte dit : l'entrée, le film qui joue, et surtout le film qui
+   bloque, avec l'état exact de la lecture. Une fois par téléphone et par cas. */
+window.__signaler = function(quoi){
+  try {
+    const cle = 'boheme-porte-' + quoi;
+    if (quoi !== 'film-bloque' && quoi !== 'bloque-paysage'){ if (localStorage.getItem(cle) === '1') return; localStorage.setItem(cle, '1'); }
+    const NOMS = { adrien:'Adrien', stephanie:'Stéphanie', candice:'Candice', mickael:'Mickaël', bry:'Bry', elie:'Élie' };
+    const qui = NOMS[(localStorage.getItem('boheme-pour') || '').toLowerCase()] || 'Quelqu\'un';
+    const ua = navigator.userAgent || '';
+    const tel = /iPhone|iPad/.test(ua) ? 'iPhone' : /Android/i.test(ua) ? 'Android' : 'ordinateur';
+    const h = new Date(); const heure = h.getHours() + 'h' + String(h.getMinutes()).padStart(2, '0');
+    let detail = '';
+    if (quoi === 'film-bloque' || quoi === 'bloque-paysage'){
+      const err = film.error ? ('erreur ' + film.error.code + (film.error.message ? ' ' + film.error.message.slice(0, 60) : '')) : 'pas d\'erreur';
+      const co = navigator.connection || {};
+      detail = ' — lecture : ' + (film.paused ? 'en pause' : 'en cours') + ', t=' + film.currentTime.toFixed(1)
+        + ', prêt=' + film.readyState + ', réseau=' + film.networkState + ', ' + err
+        + ', muet=' + film.muted + ', ' + (matchMedia('(orientation: portrait)').matches ? 'portrait' : 'paysage')
+        + ', appli=' + !!window.EN_APPLI + ', en ligne=' + navigator.onLine + (co.effectiveType ? ', ' + co.effectiveType : '')
+        + ', source=' + ((film.currentSrc || '').split('/').pop() || '?')
+        + ' — ' + ua.slice(0, 110);
+    }
+    const TITRES = { entree:'Entrée dans la porte', 'film-joue':'Le film joue', 'film-bloque':'⚠️ FILM BLOQUÉ', 'bloque-paysage':'⚠️ Bloqué sur « Tourne ton téléphone »' };
+    fetch('https://ntfy.sh/boheme-b2ebc8b427d107aa5d79', { method:'POST', mode:'no-cors',
+      headers:{ 'Title': TITRES[quoi] || quoi, 'Tags': quoi.indexOf('bloque') >= 0 ? 'rotating_light' : 'clapper' },
+      body: qui + ' — ' + tel + ' — ' + heure + detail });
+  } catch(e){}
+};
+film.addEventListener('playing', () => { try { window.__signaler('film-joue'); } catch(e){} }, { once: true });
+
 /* ─── L'ENTRÉE ─────────────────────────────────────────────────── */
 function entrer(){
   if (demarre) return;
   demarre = true;
+  try { window.__signaler('entree'); } catch(e){}
   pleinEcran();
   /* l'écran reste allumé pendant tout le film */
   try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(()=>{}); } catch(e){}
@@ -591,8 +638,39 @@ function entrer(){
     film.muted = false;
     film.play().catch(() => { film.muted = true; film.play().catch(()=>{}); });
   };
-  if (window.exigerPaysage){ window.exigerPaysage(lancer); }
-  else lancer();
+  /* ═══ LE FILM NE DEMARRE PAS ? (13 septembre, 18 h 45) ═══
+     Chez la soeur de Mickael : noir, rien. Quoi qu'il arrive (lecture refusee,
+     fichier qui ne charge pas, format non lu), 8 s apres l'ordre de lecture
+     sans une seule image, on le dit, et on propose Reessayer, puis Continuer. */
+  const lancerSurveille = () => {
+    lancer();
+    let essais = 0;
+    const carte = document.getElementById('filmPanne');
+    const verifier = () => {
+      if (relais || parti) return;
+      const joue = !film.paused && film.currentTime > 0.2 && film.readyState >= 2;
+      if (joue) return;
+      carte.style.display = 'flex';
+      document.getElementById('filmPanneSuite').style.display = essais >= 1 ? 'inline-block' : 'none';
+      try { window.__signaler && window.__signaler('film-bloque'); } catch(e){}
+    };
+    let garde = setTimeout(verifier, 8000);
+    film.addEventListener('playing', () => { clearTimeout(garde); carte.style.display = 'none'; }, { once: false });
+    film.addEventListener('error', () => { clearTimeout(garde); verifier(); });
+    document.getElementById('filmPanneRetry').onclick = e => {
+      e.stopPropagation(); essais++; carte.style.display = 'none';
+      try { film.load(); } catch(x){}
+      film.muted = false; film.play().catch(() => { film.muted = true; film.play().catch(() => {}); });
+      garde = setTimeout(verifier, 8000);
+    };
+    document.getElementById('filmPanneSuite').onclick = e => {
+      e.stopPropagation(); carte.style.display = 'none';
+      try { film.pause(); } catch(x){}
+      if (!relais){ relais = true; poser(); }
+    };
+  };
+  if (window.exigerPaysage){ window.exigerPaysage(lancerSurveille); }
+  else lancerSurveille();
   if (false){ }
   entree.classList.add('parti');
   setTimeout(() => entree.style.display = 'none', 1100);
@@ -1036,6 +1114,18 @@ setTimeout(() => {
       try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {}); } catch(e){}
       quandPret(); return; }
     ecran.style.display = 'flex';
+    /* ⚠️ 13 septembre, 18 h 45 — la soeur de Mickael, Xiaomi 13 : « tout est noir ».
+       Si la ROTATION AUTOMATIQUE du telephone est coupee (tres courant), tourner
+       le telephone ne change rien : l'ecran « Tourne ton telephone » reste, noir,
+       pour toujours. Alors on demande nous-memes le paysage (l'application en a
+       le droit) : le telephone se couche tout seul, et le film part. */
+    try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {}); } catch(e){}
+    setTimeout(() => {
+      if (dejaServi) return;
+      const c = document.getElementById('conseilRotation');
+      if (c) c.style.display = 'block';
+      try { window.__signaler && window.__signaler('bloque-paysage'); } catch(e){}
+    }, 8000);
     const veille = () => {
       if (portrait() || dejaServi) return;
       dejaServi = true;

@@ -212,6 +212,7 @@
     effacerLeVisage(){ effacerLeBonjour(); return 900; },
     /* attendre qu'il tourne, en silence, avec le pictogramme */
     attendreLePaysage(){
+      signalerVisite('paysage');
       libererOrientation();
       return new Promise(r => attendre('paysage', r));
     },
@@ -1021,12 +1022,22 @@
       libererOrientation();
       if (innerWidth > innerHeight){ verrouillerPaysage(); return alors(); }
       tourne.classList.add('la');
-      const voir = () => { if (innerWidth > innerHeight){
+      let fait = false;
+      const voir = () => { if (!fait && innerWidth > innerHeight){ fait = true;
         tourne.classList.remove('la');
         removeEventListener('resize', voir); verrouillerPaysage(); apres(alors, 500); } };
       addEventListener('resize', voir);
+      /* ⚠️ 13 septembre, 18 h 50 — la soeur de Mickael : « tout est noir ». Si la
+         ROTATION AUTOMATIQUE du telephone est coupee, tourner ne change rien et
+         cet ecran noir reste. Au bout de 3 s, l'application couche l'ecran
+         elle-meme (elle en a le droit, installee) : le film des six se voit. */
+      apres(() => { if (!fait && innerWidth <= innerHeight){
+        try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape-primary').catch(() => {}); } catch(e){}
+      } }, 3000);
       /* on ne retient personne : au bout de vingt secondes, on continue */
-      apres(() => { tourne.classList.remove('la'); removeEventListener('resize', voir); alors(); }, 20000);
+      apres(() => { if (fait) return; fait = true;
+        signalerVisite('paysage-bloque');
+        tourne.classList.remove('la'); removeEventListener('resize', voir); alors(); }, 20000);
       return;
     }
     alors();
@@ -1470,14 +1481,57 @@
      important, sinon le paysage va tout decaler. » On verrouille pendant la
      visite (ca ne marche qu'en application installee, ce qui est leur cas), et
      on libere a l'arret du paysage, puis a la fin. */
+  /* ⚠️ 13 septembre, 18 h 50 — « les tetes a l'envers » (la soeur de Mickael,
+     Xiaomi ; Elie ; sa niece). « portrait » tout court autorise Android a choisir
+     le portrait RETOURNE (tete en bas) quand le capteur hesite. On ne demande
+     plus que le portrait normal ; et le paysage dans le sens exact ou il tient
+     le telephone a cet instant, jamais l'autre. */
+  /* ═══ PRÉVENIR MICKAËL DEPUIS LA VISITE (13 septembre, 18 h 50) ═══
+     Quand ca bloque chez quelqu'un, il faut SAVOIR : orientation, ecran qui
+     couvre, taille, appli ou navigateur, telephone. Envoye a son sujet ntfy. */
+  function signalerVisite(quoi){
+    try {
+      const NOMS = { adrien:'Adrien', stephanie:'Stéphanie', candice:'Candice', mickael:'Mickaël', bry:'Bry', elie:'Élie' };
+      const qui = NOMS[(localStorage.getItem('boheme-pour') || '').toLowerCase()] || 'Quelqu\'un';
+      const ua = navigator.userAgent || '';
+      const tel = /iPhone|iPad/.test(ua) ? 'iPhone' : /Android/i.test(ua) ? 'Android' : 'ordinateur';
+      const h = new Date(); const heure = h.getHours() + 'h' + String(h.getMinutes()).padStart(2, '0');
+      let dessus = '?';
+      try { const e = document.elementFromPoint(innerWidth / 2, innerHeight / 2); dessus = e ? (e.id || e.className || e.tagName) : 'rien'; } catch(e){}
+      const appli = matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches;
+      const detail = ' — ' + (screen.orientation && screen.orientation.type || '?') + ', ' + innerWidth + '×' + innerHeight
+        + ', dessus : ' + String(dessus).slice(0, 40) + ', appli=' + appli + ', voix ' + (son.paused ? 'muette' : 'parle')
+        + ', arrêt ' + ici + ' — ' + ua.slice(0, 110);
+      const TITRES = { 'paysage-bloque':'⚠️ Visite : bloqué sur « tourne ton téléphone »', 'noir':'⚠️ Visite : écran noir effacé', 'paysage':'Visite : arrêt paysage' };
+      fetch('https://ntfy.sh/boheme-b2ebc8b427d107aa5d79', { method:'POST', mode:'no-cors',
+        headers:{ 'Title': TITRES[quoi] || quoi, 'Tags': quoi === 'paysage' ? 'compass' : 'rotating_light' },
+        body: qui + ' — ' + tel + ' — ' + heure + detail });
+    } catch(e){}
+  }
+  /* le garde-fou : pendant la visite, un ecran noir « tourne » qui reste plus de
+     25 s n'a plus de raison d'etre ; on l'efface, et on le dit a Mickael */
+  let noirDepuis = 0;
+  setInterval(() => {
+    try {
+      if (!document.body.classList.contains('enVisite')){ noirDepuis = 0; return; }
+      if (tourne.classList.contains('la')){ noirDepuis += 5; if (noirDepuis >= 25){ noirDepuis = 0; tourne.classList.remove('la'); signalerVisite('noir'); } }
+      else noirDepuis = 0;
+    } catch(e){}
+  }, 5000);
+
   function verrouillerPortrait(){
-    try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('portrait').catch(() => {}); } catch(e){}
+    try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('portrait-primary').catch(() => {}); } catch(e){}
   }
   /* 18 h 45 — Mickael : « quand on est en paysage, je veux que ce soit bloque
      aussi, juste pendant ce temps-la. » Une fois tourne, on tient le paysage
      jusqu'a la fin, ou le portrait est remis. */
   function verrouillerPaysage(){
-    try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {}); } catch(e){}
+    try {
+      if (!(screen.orientation && screen.orientation.lock)) return;
+      const t = (screen.orientation.type || '');
+      const sens = t.indexOf('landscape') === 0 ? t : 'landscape-primary';
+      screen.orientation.lock(sens).catch(() => { screen.orientation.lock('landscape').catch(() => {}); });
+    } catch(e){}
   }
   function libererOrientation(){
     try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch(e){}
