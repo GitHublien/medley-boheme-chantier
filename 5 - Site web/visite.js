@@ -1096,7 +1096,10 @@
     document.body.appendChild(b);
     b.querySelector('.oui').addEventListener('click', () => {
       b.remove();
-      if (monFil === fil) jouer(k, monFil);
+      if (monFil !== fil) return;
+      /* 12 h 40 — on annule les gestes deja lances (defilement, lumieres) avant de rejouer l'arret */
+      fil++; eteindreLesHorloges(); try { son.pause(); } catch(e){}
+      jouer(k, fil);
     });
   }
 
@@ -1507,6 +1510,38 @@
   function rendreLaVeille(){ try { if (veille){ veille.release().catch(() => {}); veille = null; } } catch(e){} }
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && document.body.classList.contains('enVisite')) tenirEveille(); });
 
+  /* ⚠️ 13 septembre, 12 h 40 — LE DEFAUT DES NOUVEAUX VENUS (la niece de Mickael
+     sur Samsung, Elie sur iPhone : « les tetes a l'envers », « le bouton rouge
+     n'est pas apparu »). Chez quelqu'un qui n'a jamais utilise l'application,
+     le telephone REFUSE de jouer la voix sans un toucher. La visite posait bien
+     la carte « Commencer »… mais les gestes (le defilement vers les six visages,
+     les lumieres) etaient deja programmes et tournaient derriere la carte ; a
+     l'appui, la visite repartait du debut PAR-DESSUS ces gestes en cours : la
+     voix disait « voila l'accueil » devant les visages, et la lumiere du bouton
+     rouge tombait au mauvais moment. Mickael ne le voyait jamais : son telephone
+     connait l'application, Chrome le laisse parler sans demander.
+     Reproduit dans un Chrome Android emule (Pixel 7), corrige ici : AVANT de
+     bouger quoi que ce soit, on verifie qu'on a le droit de parler. Si non, la
+     carte « Commencer » vient en premier, et rien ne bouge avant l'appui. */
+  const SILENCE = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=';
+  function quandOnPeutParler(alors){
+    let s2;
+    try { s2 = new Audio(SILENCE); s2.volume = 0.01; } catch(e){ return alors(); }
+    const p = s2.play();
+    if (!p || typeof p.then !== 'function') return alors();
+    p.then(() => { try { s2.pause(); } catch(e){} alors(); })
+     .catch(err => {
+       if (!(err && /NotAllowed/i.test(String(err.name || err)))) return alors();
+       if (document.querySelector('#vDepart')) return;
+       const b = document.createElement('div');
+       b.className = 'visiteGarde'; b.id = 'vDepart';
+       b.innerHTML = '<div class="bulle"><p>Monte le son, et touche pour commencer.</p>'
+         + '<button class="oui">Commencer la visite</button></div>';
+       document.body.appendChild(b);
+       b.querySelector('.oui').addEventListener('click', () => { b.remove(); alors(); });
+     });
+  }
+
   function lancer(){
     /* un depart neuf annule tout ce qui pouvait encore tourner */
     fil++; arrete = false; tenirEveille();
@@ -1517,8 +1552,9 @@
     entree.classList.remove('la');
     document.body.classList.add('enVisite');
     baisserLaMusique();
-    jouer(departA, fil);
-    departA = 0;
+    const k = departA; departA = 0;
+    const monFil = fil;
+    quandOnPeutParler(() => { if (monFil === fil) jouer(k, monFil); });
   }
 
   entree.querySelector('.oui').addEventListener('click', lancer);
@@ -1648,7 +1684,8 @@
        arret, sans carte ni question. */
     if (reste){
       apres(() => { fil++; arrete = false; verrouillerPortrait(); taireLaMusique();
-                    document.body.classList.add('enVisite'); jouer(reste, fil); }, 900);
+                    document.body.classList.add('enVisite');
+                    const monFil = fil; quandOnPeutParler(() => { if (monFil === fil) jouer(reste, monFil); }); }, 900);
       return;
     }
     if (false){
