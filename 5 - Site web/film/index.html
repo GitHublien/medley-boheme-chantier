@@ -79,14 +79,16 @@
       <div class="rond" id="bSon" title="son"><svg id="icoSon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3z"/></svg></div>
       <div class="bas">
         <div class="sauts">
+          <div class="saut" id="moins">− 10 s</div>
           <div class="pp" id="pp"><svg id="icoPP" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg></div>
+          <div class="saut" id="plus">+ 10 s</div>
         </div>
         <div class="ligne" id="ligne"><div class="fait" id="fait"></div><div class="point" id="point" style="left:0"></div><div class="temps" id="temps">0:00 / 3:01</div></div>
       </div>
     </div>
   </div>
   <div class="charge" id="charge">Le film charge… il repart tout seul.</div>
-  <p class="aide"><b>Monte le son</b>, puis appuie sur Lecture : le film se met tout seul en grand écran. Un appui sur l'image fait apparaître les commandes : pause, et la ligne d'or pour revenir où tu veux. Pour sortir, quitte le plein écran : le film se referme.</p>
+  <p class="aide"><b>Monte le son</b>, puis appuie sur Lecture : le film se met tout seul en grand écran. Un appui sur l'image fait apparaître les commandes : pause, − 10 s, + 10 s, et la ligne d'or pour revenir où tu veux. Pour sortir, quitte le plein écran.</p>
   <div class="filet"></div>
   <p class="pied">Bohème Production · Cannes · 4 octobre 2026</p>
 <script>
@@ -115,6 +117,7 @@
   const cadre = document.querySelector('.cadre');
   const lire = $('lire');
   const iOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  let tCmd = null;
   const enPlein = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
   function entrerPleinEcran(){
     try {
@@ -133,26 +136,22 @@
     film.play().catch(() => {});
     montrerCmd();
   });
-  /* 15 h 10 — Mickaël : « je ne veux pas voir la barre du navigateur ». Une page
-     ouverte dans un navigateur a toujours sa barre, sauf en plein écran ; on
-     n'y peut rien. Alors quitter le plein écran = FERMER le film : on revient
-     d'où on vient (WhatsApp), comme si la vidéo s'était refermée. */
-  let aJoue = false;
+  /* 15 h 20 — Mickaël : « quand on arrête, je voudrais que ça revienne sur
+     quelque chose de joli » : la page noire, le logo, l'affiche et le seul
+     bouton Lecture, sans aucune commande qui traîne. */
   function sortie(){
     if (enPlein()) return;
-    try { film.pause(); film.currentTime = 0; } catch(e){}
+    clearTimeout(tCmd); cadre.classList.remove('montre');
+    try { film.pause(); film.currentTime = 0; film.load(); } catch(e){}   /* load() : l'affiche revient */
     try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch(e){}
-    cadre.classList.remove('montre'); lire.hidden = false;
-    if (aJoue && history.length > 1){ aJoue = false; setTimeout(() => history.back(), 150); }
+    lire.hidden = false;
   }
-  film.addEventListener('playing', () => { aJoue = true; });
   document.addEventListener('fullscreenchange', sortie);
   document.addEventListener('webkitfullscreenchange', sortie);
   film.addEventListener('webkitendfullscreen', sortie);   /* le lecteur d'Apple */
   film.addEventListener('ended', () => { if (enPlein()) quitterPleinEcran(); else sortie(); });
 
   /* ── les commandes maison ── */
-  let tCmd = null;
   function montrerCmd(){ cadre.classList.add('montre'); clearTimeout(tCmd); tCmd = setTimeout(() => { if (!film.paused) cadre.classList.remove('montre'); }, 3000); }
   const PAUSE = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>', LECT = '<path d="M8 5v14l11-7z"/>';
   const majPP = () => { $('icoPP').innerHTML = film.paused ? LECT : PAUSE; };
@@ -161,6 +160,8 @@
   /* un appui sur l'image : montre les commandes ; si elles sont déjà là, pause / reprise */
   film.addEventListener('click', () => { if (lire.hidden){ if (cadre.classList.contains('montre')) bascule(); montrerCmd(); } });
   $('pp').addEventListener('click', e => { e.stopPropagation(); bascule(); montrerCmd(); });
+  $('moins').addEventListener('click', e => { e.stopPropagation(); film.currentTime = Math.max(0, film.currentTime - 10); montrerCmd(); });
+  $('plus').addEventListener('click', e => { e.stopPropagation(); film.currentTime = Math.min(film.duration || 0, film.currentTime + 10); montrerCmd(); });
   $('bPlein').addEventListener('click', e => { e.stopPropagation(); if (enPlein()) quitterPleinEcran(); else entrerPleinEcran(); montrerCmd(); });
   const SON = '<path d="M3 9v6h4l5 5V4L7 9H3z"/>';
   const MUET = '<path d="M16.5 12A4.5 4.5 0 0014 7.97v2.21l2.45 2.45c.03-.2.05-.41.05-.63zM3 9v6h4l5 5v-6.59l-7.41-7.4L3 9zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25L19 15.5 4.27 3z"/>';
