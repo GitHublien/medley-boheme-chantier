@@ -3843,13 +3843,17 @@ if (SUR_MOBILE){
    ═══════════════════════════════════════════════════════════════ */
 (function(){
   const VALIDES = ['adrien','stephanie','candice','mickael','bry','elie'];
+  /* ⚠️ 13 septembre, 14 h 20 — Mickael : « ce qui change dans l'atelier reste
+     dans l'atelier. » Si quelqu'un a choisi un autre prenom ICI (pour voir les
+     parties d'un autre), ca ne doit pas changer la voix de la visite, le visage
+     d'accueil ni le bouton rouge. L'atelier a donc SON prenom (boheme-atelier-pour),
+     qui prime ; sinon il prend celui du site. Et l'atelier n'ecrit plus jamais
+     le prenom du site : seule la page « Mon prenom » le fait. */
+  let propre = '';
+  try { propre = (localStorage.getItem('boheme-atelier-pour') || '').toLowerCase(); } catch(e){}
   let qui = (new URLSearchParams(location.search).get('pour') || '').toLowerCase();
-  if (VALIDES.includes(qui)){
-    /* un lien personnel : on grave le prénom dans le téléphone */
-    try { localStorage.setItem('boheme-pour', qui); } catch(e){}
-  } else {
-    /* pas de paramètre (l'application s'ouvre sur son adresse fixe) :
-       on relit le prénom gravé */
+  if (VALIDES.includes(propre)) qui = propre;
+  else if (!VALIDES.includes(qui)){
     try { qui = (localStorage.getItem('boheme-pour') || '').toLowerCase(); } catch(e){}
   }
   if (!VALIDES.includes(qui)) return;
@@ -7010,7 +7014,9 @@ const VERSION_APPLI = '11/09/2026 · 19h31';
   const carte = document.getElementById('quiEsTu');
   if (!carte) return;
   const params = new URLSearchParams(location.search);
-  let actuel = params.get('pour');
+  let actuel = null;
+  try { actuel = localStorage.getItem('boheme-atelier-pour'); } catch(e){}
+  if (!actuel) actuel = params.get('pour');
   try { if (!actuel) actuel = localStorage.getItem('boheme-pour'); } catch(e){}
 
   function marquer(){
@@ -7022,10 +7028,10 @@ const VERSION_APPLI = '11/09/2026 · 19h31';
 
   carte.querySelectorAll('button.n').forEach(b => b.addEventListener('click', () => {
     const q = b.dataset.qui;
-    try { localStorage.setItem('boheme-pour', q); } catch(e){}
-    /* on recharge avec le bon prénom : tout l'atelier se règle dessus */
+    /* le prenom de l'ATELIER seulement ; celui du site ne bouge pas */
+    try { localStorage.setItem('boheme-atelier-pour', q); } catch(e){}
     const p = new URLSearchParams(location.search);
-    p.set('pour', q); p.delete('bienvenue');
+    p.delete('pour'); p.delete('bienvenue'); p.set('x', Date.now());
     location.replace(location.pathname + '?' + p.toString());
   }));
   document.getElementById('qetSans').addEventListener('click', () => {
@@ -7058,7 +7064,7 @@ const VERSION_APPLI = '11/09/2026 · 19h31';
   try {
     dejaDemande = localStorage.getItem('boheme-nom-demande');
     sansNom     = localStorage.getItem('boheme-sans-nom');
-    dejaConnu   = localStorage.getItem('boheme-pour');
+    dejaConnu   = localStorage.getItem('boheme-atelier-pour') || localStorage.getItem('boheme-pour');
   } catch(e){}
   if (dejaDemande !== '1' && sansNom !== '1' && !dejaConnu && !actuel){
     try { localStorage.setItem('boheme-nom-demande', '1'); } catch(e){}
