@@ -38,7 +38,33 @@
               box-shadow:0 0 30px rgba(241,210,122,.55); color:var(--or2); font-size:38px; padding-left:8px; transition:transform .15s; }
   .lire:active span{ transform:scale(.92); }
   .lire[hidden]{ display:none; }
-  video:fullscreen, video:-webkit-full-screen{ width:100vw; height:100vh; object-fit:contain; background:#000; }
+  /* ── le lecteur maison, comme dans la porte de l'application (14 h 50) ──
+     Mickaël : « un lecteur moins contraignant, comme celui de l'application ».
+     Donc : le film seul, deux petits ronds d'or en haut à droite (son, plein
+     écran), une fine ligne d'or en bas pour revenir en arrière, un appui sur
+     l'image pour pause / reprise. Tout s'efface après 3 s, revient au toucher. */
+  .cadre:fullscreen, .cadre:-webkit-full-screen{ width:100vw; height:100vh; max-width:none; border-radius:0; box-shadow:none; }
+  .cadre:fullscreen video, .cadre:-webkit-full-screen video{ width:100%; height:100%; aspect-ratio:auto; object-fit:contain; }
+  .cmd{ position:absolute; inset:0; opacity:0; transition:opacity .35s; pointer-events:none; }
+  .cadre.montre .cmd{ opacity:1; }
+  .cadre.montre .cmd > *{ pointer-events:auto; }
+  .rond{ position:absolute; top:max(14px,env(safe-area-inset-top)); width:36px; height:36px; border-radius:50%; border:1px solid rgba(212,175,55,.45);
+         background:rgba(8,7,6,.55); display:flex; align-items:center; justify-content:center; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .rond svg{ width:15px; height:15px; fill:rgba(226,196,132,.95); }
+  #bSon{ right:max(14px,env(safe-area-inset-right)); }
+  #bPlein{ right:calc(max(14px,env(safe-area-inset-right)) + 46px); }
+  .bas{ position:absolute; left:0; right:0; bottom:0; padding:0 max(14px,env(safe-area-inset-left)) max(12px,env(safe-area-inset-bottom));
+        background:linear-gradient(transparent, rgba(0,0,0,.65)); }
+  .sauts{ display:flex; justify-content:center; gap:26px; align-items:center; margin-bottom:10px; }
+  .saut{ font-family:'Outfit',sans-serif; font-weight:300; font-size:12px; letter-spacing:.08em; color:rgba(226,196,132,.95); background:rgba(8,7,6,.55);
+         border:1px solid rgba(212,175,55,.45); border-radius:999px; padding:7px 13px; cursor:pointer; -webkit-tap-highlight-color:transparent; user-select:none; }
+  .pp{ width:46px; height:46px; border-radius:50%; border:1px solid rgba(212,175,55,.6); background:rgba(8,7,6,.6); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .pp svg{ width:20px; height:20px; fill:#f1d27a; }
+  .ligne{ position:relative; height:22px; cursor:pointer; touch-action:none; }
+  .ligne::before{ content:''; position:absolute; left:0; right:0; top:10px; height:2px; background:rgba(241,210,122,.25); }
+  .fait{ position:absolute; left:0; top:10px; height:2px; width:0; background:var(--or2); box-shadow:0 0 8px rgba(241,210,122,.7); }
+  .point{ position:absolute; top:5px; width:12px; height:12px; border-radius:50%; background:var(--or2); margin-left:-6px; box-shadow:0 0 10px rgba(241,210,122,.8); }
+  .temps{ position:absolute; right:0; bottom:26px; font-size:11px; letter-spacing:.08em; color:rgba(226,196,132,.8); font-variant-numeric:tabular-nums; }
 </style>
 </head>
 <body>
@@ -48,9 +74,21 @@
   <div class="cadre">
     <video id="film" playsinline preload="metadata" poster="../site-images/18-medley-film.jpg"></video>
     <button class="lire" id="lire" aria-label="Lecture"><span>▶</span></button>
+    <div class="cmd" id="cmd">
+      <div class="rond" id="bPlein" title="plein écran"><svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg></div>
+      <div class="rond" id="bSon" title="son"><svg id="icoSon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3z"/></svg></div>
+      <div class="bas">
+        <div class="sauts">
+          <div class="saut" id="moins">− 10 s</div>
+          <div class="pp" id="pp"><svg id="icoPP" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg></div>
+          <div class="saut" id="plus">+ 10 s</div>
+        </div>
+        <div class="ligne" id="ligne"><div class="fait" id="fait"></div><div class="point" id="point" style="left:0"></div><div class="temps" id="temps">0:00 / 3:01</div></div>
+      </div>
+    </div>
   </div>
   <div class="charge" id="charge">Le film charge… il repart tout seul.</div>
-  <p class="aide"><b>Monte le son</b>, puis appuie sur Lecture : le film se met tout seul en grand écran. Tu peux mettre en pause ou revenir en arrière avec les commandes ; pour sortir, quitte le plein écran.</p>
+  <p class="aide"><b>Monte le son</b>, puis appuie sur Lecture : le film se met tout seul en grand écran. Un appui sur l'image fait apparaître les commandes : pause, − 10 s, + 10 s, et la ligne d'or pour revenir où tu veux. Pour sortir, quitte le plein écran.</p>
   <div class="filet"></div>
   <p class="pied">Bohème Production · Cannes · 4 octobre 2026</p>
 <script>
@@ -67,40 +105,79 @@
   film.addEventListener('waiting', montrer); film.addEventListener('stalled', montrer);
   film.addEventListener('playing', cacher); film.addEventListener('canplay', cacher); film.addEventListener('ended', cacher);
 
-  /* ── PLEIN ÉCRAN, COUCHÉ, SANS BARRE (13 septembre, 14 h 30) ─────────────
+  /* ── PLEIN ÉCRAN, COUCHÉ, SANS BARRE ─────────────────────────────────────
      Mickaël : « dès qu'on appuie sur Lecture, il se met en grand écran, sans le
      bandeau du navigateur ; on peut le contrôler ; et quand on quitte le plein
      écran, il se remet droit et il n'y a plus de vidéo. »
-     Android : le plein écran a le droit de coucher le téléphone lui-même.
-     iPhone : Apple ouvre son propre lecteur plein écran, qui cache Safari et
-     suit la rotation. À la sortie : pause, retour au début, téléphone libéré. */
-  const lire = document.getElementById('lire');
+     Android / ordinateur : le CADRE passe en plein écran (avec nos commandes),
+     et le plein écran a le droit de coucher le téléphone lui-même.
+     iPhone : Apple ouvre son propre lecteur plein écran (le seul moyen de cacher
+     Safari), qui suit la rotation. À la sortie : pause, retour au début. */
+  const $ = id => document.getElementById(id);
+  const cadre = document.querySelector('.cadre');
+  const lire = $('lire');
   const iOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const enPlein = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
   function entrerPleinEcran(){
     try {
       if (iOS && film.webkitEnterFullscreen){ film.webkitEnterFullscreen(); return; }
-      const f = film.requestFullscreen || film.webkitRequestFullscreen;
-      if (f){ const r = f.call(film); if (r && r.then) r.catch(() => {}); }
+      const f = cadre.requestFullscreen || cadre.webkitRequestFullscreen;
+      if (f){ const r = f.call(cadre); if (r && r.then) r.catch(() => {}); }
       if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {});
     } catch(e){}
   }
+  function quitterPleinEcran(){
+    try { if (document.exitFullscreen && document.fullscreenElement) document.exitFullscreen().catch(() => {}); else if (document.webkitExitFullscreen) document.webkitExitFullscreen(); } catch(e){}
+  }
   lire.addEventListener('click', () => {
     lire.hidden = true;
-    film.controls = true;               /* les commandes, pour le piloter */
     entrerPleinEcran();
     film.play().catch(() => {});
+    montrerCmd();
   });
   function sortie(){
-    /* on quitte le plein écran : le film s'arrête, le téléphone se redresse */
-    if (document.fullscreenElement || document.webkitFullscreenElement) return;
+    if (enPlein()) return;
     try { film.pause(); film.currentTime = 0; } catch(e){}
     try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch(e){}
-    film.controls = false; lire.hidden = false;
+    cadre.classList.remove('montre'); lire.hidden = false;
   }
   document.addEventListener('fullscreenchange', sortie);
   document.addEventListener('webkitfullscreenchange', sortie);
   film.addEventListener('webkitendfullscreen', sortie);   /* le lecteur d'Apple */
-  film.addEventListener('ended', () => { try { if (document.exitFullscreen && document.fullscreenElement) document.exitFullscreen(); else if (film.webkitExitFullscreen) film.webkitExitFullscreen(); } catch(e){} });
+  film.addEventListener('ended', () => { if (enPlein()) quitterPleinEcran(); else sortie(); });
+
+  /* ── les commandes maison ── */
+  let tCmd = null;
+  function montrerCmd(){ cadre.classList.add('montre'); clearTimeout(tCmd); tCmd = setTimeout(() => { if (!film.paused) cadre.classList.remove('montre'); }, 3000); }
+  const PAUSE = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>', LECT = '<path d="M8 5v14l11-7z"/>';
+  const majPP = () => { $('icoPP').innerHTML = film.paused ? LECT : PAUSE; };
+  film.addEventListener('play', majPP); film.addEventListener('pause', () => { majPP(); montrerCmd(); });
+  const bascule = () => { if (film.paused) film.play().catch(() => {}); else film.pause(); };
+  /* un appui sur l'image : montre les commandes ; si elles sont déjà là, pause / reprise */
+  film.addEventListener('click', () => { if (lire.hidden){ if (cadre.classList.contains('montre')) bascule(); montrerCmd(); } });
+  $('pp').addEventListener('click', e => { e.stopPropagation(); bascule(); montrerCmd(); });
+  $('moins').addEventListener('click', e => { e.stopPropagation(); film.currentTime = Math.max(0, film.currentTime - 10); montrerCmd(); });
+  $('plus').addEventListener('click', e => { e.stopPropagation(); film.currentTime = Math.min(film.duration || 0, film.currentTime + 10); montrerCmd(); });
+  $('bPlein').addEventListener('click', e => { e.stopPropagation(); if (enPlein()) quitterPleinEcran(); else entrerPleinEcran(); montrerCmd(); });
+  const SON = '<path d="M3 9v6h4l5 5V4L7 9H3z"/>';
+  const MUET = '<path d="M16.5 12A4.5 4.5 0 0014 7.97v2.21l2.45 2.45c.03-.2.05-.41.05-.63zM3 9v6h4l5 5v-6.59l-7.41-7.4L3 9zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25L19 15.5 4.27 3z"/>';
+  $('bSon').addEventListener('click', e => { e.stopPropagation(); film.muted = !film.muted; $('icoSon').innerHTML = film.muted ? MUET : SON; montrerCmd(); });
+  /* la ligne d'or : on touche ou on glisse pour se déplacer dans le film */
+  const ligne = $('ligne'), fait = $('fait'), point = $('point'), temps = $('temps');
+  const mmss = x => { x = Math.max(0, Math.floor(x || 0)); return Math.floor(x / 60) + ':' + String(x % 60).padStart(2, '0'); };
+  film.addEventListener('timeupdate', () => {
+    if (!film.duration) return;
+    const r = film.currentTime / film.duration;
+    fait.style.width = (r * 100) + '%'; point.style.left = (r * 100) + '%';
+    temps.textContent = mmss(film.currentTime) + ' / ' + mmss(film.duration);
+  });
+  let glisse = false;
+  const placer = e => { const b = ligne.getBoundingClientRect(); const r = Math.min(1, Math.max(0, (e.clientX - b.left) / b.width)); if (film.duration) film.currentTime = r * film.duration; montrerCmd(); };
+  ligne.addEventListener('pointerdown', e => { e.stopPropagation(); glisse = true; try { ligne.setPointerCapture(e.pointerId); } catch(x){} placer(e); });
+  ligne.addEventListener('pointermove', e => { if (glisse) placer(e); });
+  ligne.addEventListener('pointerup', () => { glisse = false; });
+  ligne.addEventListener('pointercancel', () => { glisse = false; });
+  ligne.addEventListener('click', e => e.stopPropagation());
 })();
 </script>
 </body>
