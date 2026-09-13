@@ -78,6 +78,11 @@
   #carton{ position:absolute; inset:0; z-index:5; display:none; flex-direction:column; align-items:center; justify-content:center; gap:14px;
            background:radial-gradient(60% 50% at 50% 40%, rgba(212,175,55,.14), transparent 70%), #050505; text-align:center; }
   #carton.la{ display:flex; }
+  #carton.la:not(.fini){ justify-content:flex-start; padding-top:clamp(10px, 5vh, 40px); gap:8px; }
+  #carton.la:not(.fini) img{ width:clamp(64px, 16vh, 112px); height:auto; }
+  #carton.la:not(.fini) h2{ font-size:clamp(1.3rem, 5.5vh, 2.4rem); }
+  #carton.la:not(.fini) .p{ font-size:clamp(.6rem, 2.4vh, .85rem); }
+  #attente .n{ font-size:clamp(1.4rem, 6vh, 2.2rem); }
   #carton img{ width:112px; height:112px; filter:drop-shadow(0 0 30px rgba(212,175,55,.45)); animation:respire 2.4s ease-in-out infinite; }
   @keyframes respire{ 0%,100%{ filter:drop-shadow(0 0 18px rgba(212,175,55,.3)); } 50%{ filter:drop-shadow(0 0 40px rgba(241,210,122,.7)); } }
   #carton h2{ font-family:'Cormorant Garamond',Georgia,serif; font-weight:400; font-size:clamp(1.6rem,4.5vw,2.4rem); letter-spacing:.06em; color:var(--or2); margin:0; }
@@ -85,12 +90,14 @@
   /* le bandeau du bas : c'est là que Chrome pose sa bulle « Pour quitter le
      plein écran… » pendant ~7 s. On y met un beau bandeau et une ligne d'or
      qui se remplit : la bulle tombe dessus, et le film part quand elle est partie. */
-  #attente{ position:absolute; left:0; right:0; bottom:0; padding:16px 20px calc(14px + env(safe-area-inset-bottom)); text-align:center;
-            background:linear-gradient(transparent, rgba(0,0,0,.85)); border-top:1px solid rgba(212,175,55,.35); }
-  #attente p{ margin:0 0 10px; color:var(--gris); font-weight:300; font-size:.82rem; letter-spacing:.18em; text-transform:uppercase; }
-  #attente .j{ height:2px; width:min(420px,70%); margin:0 auto; background:rgba(241,210,122,.2); overflow:hidden; }
+  #attente{ position:absolute; left:50%; bottom:calc(14px + env(safe-area-inset-bottom)); transform:translateX(-50%); width:min(560px, 72%);
+            padding:12px 22px 14px; border-radius:16px; border:1px solid var(--or); background:rgba(8,7,6,.92);
+            box-shadow:0 0 0 4px rgba(8,7,6,1), 0 0 26px rgba(212,175,55,.25); text-align:center; }
+  #attente p{ margin:0; color:var(--gris); font-weight:300; font-size:.78rem; letter-spacing:.2em; text-transform:uppercase; }
+  #attente .n{ font-family:'Cormorant Garamond',Georgia,serif; font-size:2.2rem; line-height:1.1; color:var(--or2); font-variant-numeric:tabular-nums; }
+  #attente .j{ height:2px; width:100%; margin:8px auto 0; background:rgba(241,210,122,.2); overflow:hidden; }
   #attente .j i{ display:block; height:100%; width:0; background:var(--or2); box-shadow:0 0 8px rgba(241,210,122,.8); }
-  #carton.la:not(.fini) #attente .j i{ animation:remplir 7s linear forwards; }
+  #carton.la:not(.fini) #attente .j i{ animation:remplir 12s linear forwards; }
   @keyframes remplir{ to{ width:100%; } }
   #carton.fini #attente{ display:none; }
   #carton .fin{ display:none; gap:16px; margin-top:10px; }
@@ -113,7 +120,7 @@
       <h2>Le Medley des Légendes</h2>
       <p class="p">Bohème Production · Cannes · 4 octobre 2026</p>
       <div class="fin"><div id="revoir">Revoir</div><div id="fermer">Fermer</div></div>
-      <div id="attente"><p>Le film commence dans un instant</p><div class="j"><i></i></div></div>
+      <div id="attente"><p>Le film commence dans</p><div class="n" id="compte">12</div><div class="j"><i></i></div></div>
     </div>
     <div class="cmd" id="cmd">
       <div class="rond" id="bPlein" title="plein écran"><svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg></div>
@@ -164,7 +171,7 @@
   const cadre = document.querySelector('.cadre');
   const lire = $('lire');
   const iOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  let tCmd = null, tDepart = null;
+  let tCmd = null, tDepart = null, tCompte = null;
   const enPlein = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
   function entrerPleinEcran(){
     try {
@@ -210,8 +217,11 @@
         boite.classList.add('la');
       }, 700);
     }
-    clearTimeout(tDepart);
-    tDepart = setTimeout(() => { if (!boite.classList.contains('la')) demarrerFilm(); }, 7000);   /* 16 h 25 : 7 s, mesurées par Mickaël */
+    /* 16 h 40 — Mickaël : « douze secondes, et un compte à rebours par-dessus » */
+    clearTimeout(tDepart); clearInterval(tCompte);
+    let reste = 12; $('compte').textContent = reste;
+    tCompte = setInterval(() => { reste--; $('compte').textContent = Math.max(0, reste); if (reste <= 0) clearInterval(tCompte); }, 1000);
+    tDepart = setTimeout(() => { if (!boite.classList.contains('la')) demarrerFilm(); }, 12000);
   });
   $('iciQuandMeme').addEventListener('click', () => { boite.classList.remove('la'); demarrerFilm(); });
   /* 15 h 20 — Mickaël : « quand on arrête, je voudrais que ça revienne sur
@@ -226,7 +236,7 @@
   function sortie(){
     if (enPlein()) return;
     if (aJoue && history.length > 1){ aJoue = false; try { film.pause(); } catch(e){} history.back(); return; }
-    clearTimeout(tCmd); clearTimeout(tDepart); cadre.classList.remove('montre'); carton.classList.remove('la', 'fini');
+    clearTimeout(tCmd); clearTimeout(tDepart); clearInterval(tCompte); cadre.classList.remove('montre'); carton.classList.remove('la', 'fini');
     try { film.pause(); film.currentTime = 0; film.load(); } catch(e){}   /* load() : l'affiche revient */
     try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch(e){}
     lire.hidden = false;
