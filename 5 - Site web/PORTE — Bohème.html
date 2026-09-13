@@ -255,9 +255,24 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000 !important;
 <div id="fondNoir"></div>
 <div id="halo"></div>
 
-<video id="film" playsinline preload="auto">
-  <source src="media/porte/intro-2026-09-10.mp4" type="video/mp4">
-</video>
+<!-- 13 septembre — Elie, iPhone : « ca a commence, et ca s'est arrete. » Le film
+     faisait 93 Mo (1080p, 4,1 Mb/s) : sur une 4G moyenne, l'iPhone lit plus vite
+     qu'il ne telecharge, et l'image se fige. Les telephones recoivent une version
+     720p a 2,1 Mb/s (47 Mo), comparee image par image : meme rendu a l'ecran d'un
+     telephone. L'ordinateur garde l'originale. -->
+<video id="film" playsinline preload="auto"></video>
+<script>
+(function(){
+  const tel = matchMedia('(pointer: coarse)').matches || Math.min(screen.width, screen.height) < 900;
+  const src = document.createElement('source');
+  src.src = tel ? 'media/porte/intro-2026-09-10-tel.mp4' : 'media/porte/intro-2026-09-10.mp4';
+  src.type = 'video/mp4';
+  document.getElementById('film').appendChild(src);
+})();
+</script>
+<div id="filmCharge" style="display:none;position:fixed;left:50%;bottom:9vh;transform:translateX(-50%);z-index:57;
+  padding:.55rem 1.1rem;border-radius:999px;background:rgba(8,7,6,.85);border:1px solid rgba(212,175,55,.5);
+  color:#f1d27a;font:600 .95rem system-ui,sans-serif;letter-spacing:.02em;pointer-events:none">Le film charge… il repart tout seul</div>
 <img id="photo" src="media/porte/logo-cale-2026-09-10.png" alt="Bohème Production">
 <canvas id="poussieres"></canvas>
 <video id="passage" playsinline preload="none">
@@ -598,6 +613,14 @@ film.addEventListener('timeupdate', () => {
   if (film.currentTime >= film.duration - 0.45){ relais = true; poser(); }
 });
 film.addEventListener('ended', () => { if (!relais){ relais = true; poser(); } });
+/* si le reseau cale, on le dit, et le film repart des que la suite est arrivee */
+(function(){
+  const c = document.getElementById('filmCharge'); let t = null;
+  const montrer = () => { clearTimeout(t); t = setTimeout(() => { if (!film.paused && film.readyState < 3) c.style.display = 'block'; }, 1200); };
+  const cacher = () => { clearTimeout(t); c.style.display = 'none'; };
+  film.addEventListener('waiting', montrer); film.addEventListener('stalled', montrer);
+  film.addEventListener('playing', cacher); film.addEventListener('canplay', cacher); film.addEventListener('ended', cacher);
+})();
 
 /* ═══ LE MODE TEST (10 sept) ═══
    ?test=1 fait apparaître un bouton « passer le film » : il pousse la lecture à
