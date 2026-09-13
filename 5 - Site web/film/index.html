@@ -64,6 +64,14 @@
   .ligne::before{ content:''; position:absolute; left:0; right:0; top:10px; height:2px; background:rgba(241,210,122,.25); }
   .fait{ position:absolute; left:0; top:10px; height:2px; width:0; background:var(--or2); box-shadow:0 0 8px rgba(241,210,122,.7); }
   .point{ position:absolute; top:5px; width:12px; height:12px; border-radius:50%; background:var(--or2); margin-left:-6px; box-shadow:0 0 10px rgba(241,210,122,.8); }
+  /* l'encadré « ouvre dans Chrome », quand le mini-navigateur refuse le plein écran */
+  #chrome{ position:fixed; inset:0; z-index:50; display:none; place-items:center; padding:24px; background:rgba(0,0,0,.82); backdrop-filter:blur(6px); }
+  #chrome.la{ display:grid; }
+  #chrome .carte{ max-width:380px; width:100%; padding:26px 22px 20px; border-radius:18px; background:rgba(10,9,8,.98); border:1px solid rgba(212,175,55,.45); box-shadow:0 24px 70px rgba(0,0,0,.8); text-align:center; }
+  #chrome h2{ font-family:'Cormorant Garamond',Georgia,serif; font-weight:400; font-size:1.6rem; color:var(--or2); margin:0 0 .5rem; }
+  #chrome p{ color:var(--gris); font-weight:300; font-size:.95rem; line-height:1.5; margin:0 0 1.2rem; }
+  #chrome a.b{ display:block; padding:13px; border-radius:999px; background:var(--or); color:#111; font-weight:600; letter-spacing:.06em; text-decoration:none; }
+  #chrome button{ margin-top:12px; background:none; border:0; color:var(--gris); font:300 .85rem 'Outfit',sans-serif; text-decoration:underline; cursor:pointer; }
   .temps{ position:absolute; right:0; bottom:26px; font-size:11px; letter-spacing:.08em; color:rgba(226,196,132,.8); font-variant-numeric:tabular-nums; }
 </style>
 </head>
@@ -87,6 +95,12 @@
       </div>
     </div>
   </div>
+  <div id="chrome"><div class="carte">
+    <h2>Pour le voir en grand écran</h2>
+    <p>Le petit navigateur de WhatsApp ne sait pas passer en plein écran. Ouvre le film dans Chrome : un appui, et il se lance.</p>
+    <a class="b" id="versChrome" href="#">Ouvrir dans Chrome</a>
+    <button type="button" id="iciQuandMeme">Regarder ici quand même</button>
+  </div></div>
   <div class="charge" id="charge">Le film charge… il repart tout seul.</div>
   <p class="aide"><b>Monte le son</b>, puis appuie sur Lecture : le film se met tout seul en grand écran. Un appui sur l'image fait apparaître les commandes : pause, − 10 s, + 10 s, et la ligne d'or pour revenir où tu veux. Pour sortir, quitte le plein écran.</p>
   <div class="filet"></div>
@@ -130,9 +144,24 @@
   function quitterPleinEcran(){
     try { if (document.exitFullscreen && document.fullscreenElement) document.exitFullscreen().catch(() => {}); else if (document.webkitExitFullscreen) document.webkitExitFullscreen(); } catch(e){}
   }
+  /* 15 h 35 — Mickaël voit toujours la barre : la page s'ouvre dans le
+     mini-navigateur de WhatsApp, qui ignore la demande de plein écran. On le
+     constate (rien ne s'est passé 700 ms après l'appui) et on propose
+     d'ouvrir dans Chrome, par un lien « intent » qu'Android comprend. */
+  const versChrome = $('versChrome'), boite = $('chrome');
+  const adresse = location.href.replace(/^https?:\/\//, '');
+  versChrome.href = 'intent://' + adresse + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(location.href) + ';end';
+  $('iciQuandMeme').addEventListener('click', () => { boite.classList.remove('la'); film.play().catch(() => {}); montrerCmd(); });
   lire.addEventListener('click', () => {
     lire.hidden = true;
     entrerPleinEcran();
+    if (!iOS && tel){
+      setTimeout(() => {
+        if (enPlein()) return;
+        try { film.pause(); } catch(e){}
+        boite.classList.add('la');
+      }, 700);
+    }
     film.play().catch(() => {});
     montrerCmd();
   });
