@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Le Medley des Légendes — le film</title>
+<link rel="icon" href="../icone-192.png">
+<meta property="og:title" content="Le Medley des Légendes — le film">
+<meta property="og:description" content="Bohème Production · Cannes, 4 octobre 2026">
+<meta property="og:image" content="https://githublien.github.io/medley-boheme-production/site-images/18-medley-film.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+<!-- 13 septembre 2026 — Mickaël : « un lien spécial juste pour voir la vidéo,
+     bien fait, avec la possibilité de revenir en arrière ». Une seule page, le
+     film et rien d'autre : le lecteur du téléphone (pause, avance, retour,
+     plein écran), la version légère sur téléphone, l'originale sur ordinateur. -->
+<style>
+  :root{ --or:#d4af37; --or2:#f1d27a; --encre:#f2ead6; --gris:#b9b09c; }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; min-height:100%; background:#050505; color:var(--encre); font-family:'Outfit',system-ui,sans-serif; }
+  body{ display:flex; flex-direction:column; align-items:center; padding:calc(env(safe-area-inset-top) + 22px) 14px calc(env(safe-area-inset-bottom) + 28px);
+        background:radial-gradient(60% 40% at 50% 0%, rgba(212,175,55,.16), transparent 70%), #050505; }
+  .logo{ width:96px; height:96px; filter:drop-shadow(0 0 26px rgba(212,175,55,.35)); }
+  h1{ font-family:'Cormorant Garamond',Georgia,serif; font-weight:400; font-size:clamp(1.7rem,6vw,2.6rem); letter-spacing:.06em; color:var(--or2); margin:.9rem 0 .1rem; text-align:center; }
+  .sous{ color:var(--gris); font-weight:300; font-size:.95rem; letter-spacing:.16em; text-transform:uppercase; margin:0 0 1.4rem; text-align:center; }
+  .cadre{ width:100%; max-width:1100px; border-radius:16px; overflow:hidden; background:#000;
+          box-shadow:0 30px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(212,175,55,.35); }
+  video{ display:block; width:100%; height:auto; aspect-ratio:16/9; background:#000; }
+  .aide{ margin-top:1.2rem; color:var(--gris); font-weight:300; font-size:.92rem; text-align:center; max-width:34rem; line-height:1.5; }
+  .aide b{ color:var(--or2); font-weight:400; }
+  .filet{ width:min(520px,80%); height:1px; margin:1.6rem 0 1rem; background:linear-gradient(90deg,transparent,var(--or),transparent); }
+  .pied{ color:var(--gris); font-size:.82rem; letter-spacing:.14em; text-transform:uppercase; text-align:center; }
+  .charge{ display:none; margin-top:.8rem; color:var(--or2); font-size:.9rem; }
+</style>
+</head>
+<body>
+  <img class="logo" src="../logo.png" alt="Bohème Production">
+  <h1>Le Medley des Légendes</h1>
+  <p class="sous">Le film · 3 min 01</p>
+  <div class="cadre">
+    <video id="film" controls playsinline preload="metadata" poster="../site-images/18-medley-film.jpg"></video>
+  </div>
+  <div class="charge" id="charge">Le film charge… il repart tout seul.</div>
+  <p class="aide"><b>Monte le son</b>, et tourne le téléphone pour le voir en grand. Tu peux mettre en pause, revenir en arrière ou passer en plein écran avec les commandes du lecteur.</p>
+  <div class="filet"></div>
+  <p class="pied">Bohème Production · Cannes · 4 octobre 2026</p>
+<script>
+(function(){
+  const film = document.getElementById('film');
+  const tel = matchMedia('(pointer: coarse)').matches || Math.min(screen.width, screen.height) < 900;
+  const src = document.createElement('source');
+  src.src = tel ? '../media/porte/intro-2026-09-10-tel.mp4' : '../media/porte/intro-2026-09-10.mp4';
+  src.type = 'video/mp4';
+  film.appendChild(src);
+  const c = document.getElementById('charge'); let t = null;
+  const montrer = () => { clearTimeout(t); t = setTimeout(() => { if (!film.paused && film.readyState < 3) c.style.display = 'block'; }, 1200); };
+  const cacher = () => { clearTimeout(t); c.style.display = 'none'; };
+  film.addEventListener('waiting', montrer); film.addEventListener('stalled', montrer);
+  film.addEventListener('playing', cacher); film.addEventListener('canplay', cacher); film.addEventListener('ended', cacher);
+})();
+</script>
+</body>
+</html>
