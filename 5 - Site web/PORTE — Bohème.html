@@ -765,7 +765,7 @@ $('bSon').addEventListener('click', e => {
 (function(){
   let qui = '';
   try { qui = (new URLSearchParams(location.search).get('pour') || localStorage.getItem('boheme-pour') || '').toLowerCase(); } catch(e){}
-  if (qui !== 'elie') return;
+  if (qui !== 'elie' || true) return;   /* 9 h 50 : plus de chute, plus de prechargement */
   const precharger = () => { try { passage.preload = 'auto'; passage.load(); } catch(e){} };
   film.addEventListener('playing', precharger, { once: true });
 })();
@@ -798,9 +798,12 @@ function partir(){
      un reseau lent, play() attendait sans fin, et rien ne suivait. Deux
      garde-fous : elle est prechargee pendant le film (plus bas), et si elle
      n'a pas demarre en 2,5 s, on prend la sortie sobre, comme les cinq autres. */
-  const chuteElie = pourQui === 'elie'
-    ? Promise.race([ passage.play(), new Promise((_, rej) => setTimeout(() => rej(new Error('chute trop lente')), 2500)) ])
-    : Promise.reject(new Error('pas Élie'));
+  /* ⚠️ 13 septembre, 9 h 50 — Mickael : « supprime la video de la chute, je veux
+     que ce soit comme les autres. » Elie n'arrivait toujours pas a sortir sur son
+     iPhone. Plus de chute pour personne : la sortie sobre pour les six. Le
+     fichier passage.mp4 reste sur le disque, il n'est plus appele. */
+  const chuteElie = Promise.reject(new Error('sortie sobre pour tous'));
+  void pourQui;
   passage.muted = film.muted;
   passage.volume = 1;
   chuteElie.then(() => {
