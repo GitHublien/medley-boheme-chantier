@@ -205,8 +205,15 @@
   /* 15 h 20 — Mickaël : « quand on arrête, je voudrais que ça revienne sur
      quelque chose de joli » : la page noire, le logo, l'affiche et le seul
      bouton Lecture, sans aucune commande qui traîne. */
+  /* 16 h 10 — Mickaël : « quand j'enlève le plein écran, on voit l'adresse, je
+     ne veux pas ». Hors plein écran, le navigateur montre toujours son adresse :
+     on n'y peut rien. Alors quitter le plein écran = refermer le film et revenir
+     d'où on vient (WhatsApp). Sans page d'où venir : la page noire, avec Lecture. */
+  let aJoue = false;
+  film.addEventListener('playing', () => { aJoue = true; });
   function sortie(){
     if (enPlein()) return;
+    if (aJoue && history.length > 1){ aJoue = false; try { film.pause(); } catch(e){} history.back(); return; }
     clearTimeout(tCmd); clearTimeout(tDepart); cadre.classList.remove('montre'); carton.classList.remove('la', 'fini');
     try { film.pause(); film.currentTime = 0; film.load(); } catch(e){}   /* load() : l'affiche revient */
     try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch(e){}
