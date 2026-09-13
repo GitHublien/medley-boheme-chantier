@@ -5640,7 +5640,7 @@ body[data-pour] #bandeau{ display:flex; }
       rangee.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:.6rem;margin:.6rem 0 1.1rem';
       const tp = document.createElement('button'); tp.type = 'button';
       tp.setAttribute('aria-label', 'les trois points');
-      tp.style.cssText = 'width:56px;height:56px;border-radius:50%;border:2px solid #f1d27a;background:rgba(212,175,55,.18);'
+      tp.style.cssText = 'width:56px;height:56px;min-width:56px;min-height:56px;flex:none;box-sizing:border-box;aspect-ratio:1;border-radius:50%;border:2px solid #f1d27a;background:rgba(212,175,55,.18);'
         + 'box-shadow:0 0 18px rgba(241,210,122,.75), 0 0 40px rgba(241,210,122,.35);display:grid;place-items:center;cursor:pointer;padding:0;'
         + 'animation:guideLueur 1.6s ease-in-out infinite';
       if (!document.getElementById('guideLueurCss')){
@@ -5660,18 +5660,23 @@ body[data-pour] #bandeau{ display:flex; }
       const copie = document.createElement('div');
       copie.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:7px;pointer-events:none';
       cadre.appendChild(copie);
-      const vrais = [...document.querySelectorAll('.tiroir .btn-reg')];
-      vrais.forEach(b => {
-        let img = ''; try { img = getComputedStyle(b, '::before').backgroundImage; } catch(e){}
-        const mot = (b.querySelector('.mot') || {}).textContent || b.title || '';
-        const estGuide = b.id === 'btnTuto';
+      /* 13 h 55 — Mickael : « regarde l'atelier : les trois points donnent le
+         visage, le style et le guide, trois choses seulement. » Les pictogrammes
+         sont ceux de la barre (aide.png, style.png, question.png), les noms ceux
+         du tiroir, dans l'ordre du vrai tiroir s'il est la. */
+      const ICONE = { btnPresence:'aide', btnStyle:'style', btnTuto:'question' };
+      const NOM = { btnPresence:'Le visage', btnStyle:'Style', btnTuto:'Le guide' };
+      let ordre = [...document.querySelectorAll('.tiroir .btn-reg')].map(b => b.id).filter(id => ICONE[id]);
+      if (ordre.length < 3) ordre = ['btnPresence', 'btnStyle', 'btnTuto'];
+      copie.style.gridTemplateColumns = 'repeat(3, 1fr)';
+      ordre.forEach(id => {
+        const estGuide = id === 'btnTuto';
         const c = document.createElement('div');
-        c.style.cssText = 'display:grid;gap:5px;place-items:center;padding:9px 4px;border-radius:12px;font-size:10px;letter-spacing:.6px;text-align:center;color:#e8e2d2;'
-          + (estGuide ? 'border:2px solid #f1d27a;background:rgba(212,175,55,.22);animation:guideLueur 1.6s ease-in-out infinite' : 'border:1px solid rgba(212,175,55,.35);background:rgba(212,175,55,.06)');
-        c.innerHTML = '<span style="display:block;width:24px;height:24px;background:' + (img && img !== 'none' ? img : 'none') + ' center/contain no-repeat"></span><span>' + mot.replace(/</g, '&lt;') + '</span>';
+        c.style.cssText = 'display:grid;gap:5px;place-items:center;padding:11px 6px;border-radius:14px;font-size:10.5px;letter-spacing:.9px;text-align:center;color:#e8e2d2;line-height:1.25;'
+          + (estGuide ? 'border:2px solid #f1d27a;background:rgba(212,175,55,.22);animation:guideLueur 1.6s ease-in-out infinite' : 'border:1px solid rgba(212,175,55,.5);background:rgba(212,175,55,.07)');
+        c.innerHTML = '<span style="display:block;width:24px;height:24px;background:url(site-images/icones-karaoke/' + ICONE[id] + '.png) center/contain no-repeat;filter:drop-shadow(0 0 5px rgba(212,175,55,.4))"></span><span>' + NOM[id] + '</span>';
         copie.appendChild(c);
       });
-      if (!vrais.length){ copie.innerHTML = '<div style="color:#b9b2a0;font-size:.85rem;padding:.4rem">le tiroir, avec le bouton <b>?</b> du guide</div>'; }
       /* un appui sur les trois points : le sous-menu s'ouvre, le rond s'efface ;
          la croix referme le sous-menu, et on retrouve le rond eclaire */
       tp.addEventListener('click', () => { cadre.style.display = 'block'; tp.style.display = 'none'; });
