@@ -125,6 +125,10 @@ a.discret{ color:var(--gris); font-size:.95rem; text-decoration:underline; text-
 <div class="ecran" id="e-dedans">
   <h1>Un dernier geste, <span class="it">et c'est chez toi.</span></h1>
   <p>Tu as ouvert le lien <b>dans WhatsApp</b>, et le navigateur de WhatsApp ne sait pas installer d'application. Il faut l'ouvrir dans <b id="navNom">Chrome</b>. C'est simple :</p>
+  <!-- 13 sept, 17 h 30 : la soeur de Mickael (Xiaomi 13T) a du passer par les trois
+       points. Sur Android, un lien « intent » bascule directement dans le vrai Chrome. -->
+  <a class="btn versChrome" href="#" style="display:none">Ouvrir dans Chrome <span class="ico" style="background-image:url(site-images/icones/fleche.png)"></span></a>
+  <p class="petit versChromeTexte" style="display:none">Sinon, à la main :</p>
   <div class="pas">
     <div><b class="n">1</b><span>Appuie sur <b id="troisPoints">les trois points ⋮</b>, <b id="ouCa">en haut à droite</b>.</span></div>
     <div><b class="n">2</b><span>Choisis <b id="ouvrirDans">« Ouvrir dans Chrome »</b>, ou « Ouvrir dans le navigateur ».</span></div>
@@ -141,13 +145,22 @@ a.discret{ color:var(--gris); font-size:.95rem; text-decoration:underline; text-
   <p>Bohème est une application : <b>plein écran</b>, sans barre d'adresse, une icône sur ton téléphone. Appuie, et c'est fait.</p>
   <button class="btn" id="grosBouton">Installer Bohème <span class="ico" style="background-image:url(site-images/icones/telecharger.png)"></span></button>
   <p class="petit" id="attente">Je prépare l'installation…</p>
+  <div class="versChromeBloc" style="display:none">
+    <p class="petit">Si tu as ouvert le lien <b>depuis WhatsApp</b>, Chrome ne peut pas installer d'ici. Un appui, et il s'ouvre pour de bon :</p>
+    <a class="btn versChrome" href="#">Ouvrir dans Chrome <span class="ico" style="background-image:url(site-images/icones/fleche.png)"></span></a>
+  </div>
   <div class="sur"><i>✓</i><span><b>Aucun risque.</b> Rien ne se télécharge d'un magasin, aucune permission n'est demandée : c'est le site lui-même, posé sur ton écran d'accueil avec son icône. Pas de virus, pas de suivi.</span></div>
 </div>
 
 <!-- Android sans proposition automatique : le chemin manuel -->
 <div class="ecran" id="e-manuel">
   <h1>Installe <span class="it">l'application.</span></h1>
-  <p>Ton téléphone ne me laisse pas la lancer tout seul : voici le chemin, trois gestes.</p>
+  <p>Ton téléphone ne me laisse pas la lancer tout seul.</p>
+  <div class="versChromeBloc" style="display:none">
+    <p class="petit">Le plus souvent, c'est que le lien s'est ouvert <b>depuis WhatsApp</b>. Un appui, et le vrai Chrome s'ouvre : l'installation part alors toute seule.</p>
+    <a class="btn versChrome" href="#">Ouvrir dans Chrome <span class="ico" style="background-image:url(site-images/icones/fleche.png)"></span></a>
+    <p class="petit">Sinon, à la main :</p>
+  </div>
   <div class="pas">
     <div><b class="n">1</b><span>Appuie sur les <b>trois points ⋮</b>, en haut à droite de Chrome.</span></div>
     <div><b class="n">2</b><span>Choisis <b>« Installer et créer un raccourci »</b>.</span></div>
@@ -391,6 +404,19 @@ setTimeout(function(){ if (!document.querySelector('.ecran.la')){ var e = docume
     });
   })();
 
+  /* ═══ OUVRIR DANS LE VRAI CHROME (13 sept, 17 h 30) ═══
+     La soeur de Mickael, Xiaomi 13T : le lien s'ouvre dans la fenetre de WhatsApp,
+     Chrome n'y propose jamais l'installation, elle a du passer par les trois points.
+     Sur Android, un lien « intent://…;package=com.android.chrome » bascule dans le
+     vrai Chrome, sur cette meme page. On le pose sur les boutons « Ouvrir dans
+     Chrome », visibles seulement sur Android. */
+  if (android){
+    const cible = location.href.replace(/^https?:\/\//, '');
+    const intent = 'intent://' + cible + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(location.href) + ';end';
+    document.querySelectorAll('a.versChrome').forEach(a => { a.href = intent; a.style.display = ''; });
+    document.querySelectorAll('.versChromeTexte').forEach(e => { e.style.display = ''; });
+    document.querySelectorAll('.versChromeBloc').forEach(e => { e.style.display = ''; });
+  }
   if (enApp){ montrer('e-app'); return; }
   if (dedans || fenetreDApp){
     if (iOS){ document.getElementById('navNom').textContent = 'Safari'; document.getElementById('navNom2').textContent = 'Safari';
