@@ -5668,9 +5668,15 @@ body[data-pour] #bandeau{ display:flex; }
   window.proposerVisite = proposer;
   /* première visite : on propose, sans imposer — mais seulement si la carte de
      bienvenue est déjà passée, sinon les deux se marcheraient dessus */
-  let deja = null, bienvenueVue = null;
-  try { deja = localStorage.getItem('boheme-tuto'); bienvenueVue = localStorage.getItem('boheme-bienvenue-vue-2'); } catch(e){}
-  if (deja !== '1' && bienvenueVue === '1') setTimeout(proposer, 1400);
+  /* ⚠️ 13 septembre, 13 h — Mickael : « ma niece n'a pas eu le guide en entrant
+     dans l'atelier. » La proposition attendait que la page BIENVENUE ait ete
+     vue ; or depuis le 10 septembre, BIENVENUE n'est plus sur le parcours de la
+     premiere fois (c'est la visite guidee qui l'a remplacee). Plus personne ne
+     voyait donc la carte. Elle se propose maintenant a la premiere entree, sans
+     condition : « veux-tu passer par le guide ? », oui ou non. */
+  let deja = null;
+  try { deja = localStorage.getItem('boheme-tuto'); } catch(e){}
+  if (deja !== '1') setTimeout(proposer, 1400);
 })();
 </script>
 <script>

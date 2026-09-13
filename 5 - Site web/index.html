@@ -252,6 +252,14 @@ setTimeout(function(){ if (!document.querySelector('.ecran.la')){ var e = docume
     if (new URLSearchParams(location.search).get('zero') === '1'){
       Object.keys(localStorage).filter(k => /^(boheme-|karaoke-|livre-|baron|hint_)/i.test(k)).forEach(k => localStorage.removeItem(k));
       try { caches.keys().then(ks => ks.forEach(k => caches.delete(k))); } catch(e){}
+      /* ?zero=1&vers=atelier&pour=mickael : premiere entree dans l'ATELIER,
+         film et visite consideres comme vus (pour tester le guide sans tout revoir) */
+      const q = new URLSearchParams(location.search);
+      if (q.get('vers') === 'atelier'){
+        try { localStorage.setItem('boheme-intro-vue-3', '1'); localStorage.setItem('boheme-visite-vue-2', '1');
+              localStorage.setItem('boheme-pour', (q.get('pour') || 'mickael').toLowerCase()); } catch(e){}
+        location.replace('KARAOKE — Medley complet.html?x=' + Date.now()); throw new Error('vers atelier');
+      }
       location.replace(location.pathname + '?x=' + Date.now());
     }
   } catch(e){}
