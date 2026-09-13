@@ -5640,12 +5640,26 @@ body[data-pour] #bandeau{ display:flex; }
       rangee.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:.6rem;margin:.6rem 0 1.1rem';
       const tp = document.createElement('button'); tp.type = 'button';
       tp.setAttribute('aria-label', 'les trois points');
-      tp.style.cssText = 'width:52px;height:52px;border-radius:50%;border:1px solid rgba(212,175,55,.6);background:rgba(212,175,55,.10);'
-        + 'box-shadow:0 0 12px rgba(212,175,55,.25);display:grid;place-items:center;cursor:pointer;padding:0';
+      tp.style.cssText = 'width:56px;height:56px;border-radius:50%;border:2px solid #f1d27a;background:rgba(212,175,55,.18);'
+        + 'box-shadow:0 0 18px rgba(241,210,122,.75), 0 0 40px rgba(241,210,122,.35);display:grid;place-items:center;cursor:pointer;padding:0;'
+        + 'animation:guideLueur 1.6s ease-in-out infinite';
+      if (!document.getElementById('guideLueurCss')){
+        const st = document.createElement('style'); st.id = 'guideLueurCss';
+        st.textContent = '@keyframes guideLueur{0%,100%{box-shadow:0 0 14px rgba(241,210,122,.55),0 0 30px rgba(241,210,122,.25)}50%{box-shadow:0 0 26px rgba(241,210,122,1),0 0 60px rgba(241,210,122,.55)}}';
+        document.head.appendChild(st);
+      }
       tp.innerHTML = '<span style="display:block;width:5px;height:5px;border-radius:50%;background:#d4af37;box-shadow:-9px 0 0 #d4af37, 9px 0 0 #d4af37"></span>';
+      const cadre = document.createElement('div');
+      cadre.style.cssText = 'display:none;position:relative;width:100%;max-width:340px;padding:34px 10px 10px;border-radius:16px;'
+        + 'background:rgba(10,9,8,.98);border:1px solid rgba(212,175,55,.3);box-shadow:0 18px 50px rgba(0,0,0,.7)';
+      const croix = document.createElement('button'); croix.type = 'button'; croix.textContent = '✕';
+      croix.setAttribute('aria-label', 'Refermer');
+      croix.style.cssText = 'position:absolute;top:6px;right:8px;width:30px;height:30px;border-radius:50%;border:1px solid rgba(212,175,55,.5);'
+        + 'background:rgba(212,175,55,.08);color:#f1d27a;font:400 16px/1 system-ui;cursor:pointer;padding:0';
+      cadre.appendChild(croix);
       const copie = document.createElement('div');
-      copie.style.cssText = 'display:none;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:7px;width:100%;max-width:340px;'
-        + 'padding:10px;border-radius:16px;background:rgba(10,9,8,.98);border:1px solid rgba(212,175,55,.3);box-shadow:0 18px 50px rgba(0,0,0,.7);pointer-events:none';
+      copie.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:7px;pointer-events:none';
+      cadre.appendChild(copie);
       const vrais = [...document.querySelectorAll('.tiroir .btn-reg')];
       vrais.forEach(b => {
         let img = ''; try { img = getComputedStyle(b, '::before').backgroundImage; } catch(e){}
@@ -5653,13 +5667,16 @@ body[data-pour] #bandeau{ display:flex; }
         const estGuide = b.id === 'btnTuto';
         const c = document.createElement('div');
         c.style.cssText = 'display:grid;gap:5px;place-items:center;padding:9px 4px;border-radius:12px;font-size:10px;letter-spacing:.6px;text-align:center;color:#e8e2d2;'
-          + (estGuide ? 'border:2px solid #f1d27a;background:rgba(212,175,55,.22);box-shadow:0 0 14px rgba(241,210,122,.6)' : 'border:1px solid rgba(212,175,55,.35);background:rgba(212,175,55,.06)');
+          + (estGuide ? 'border:2px solid #f1d27a;background:rgba(212,175,55,.22);animation:guideLueur 1.6s ease-in-out infinite' : 'border:1px solid rgba(212,175,55,.35);background:rgba(212,175,55,.06)');
         c.innerHTML = '<span style="display:block;width:24px;height:24px;background:' + (img && img !== 'none' ? img : 'none') + ' center/contain no-repeat"></span><span>' + mot.replace(/</g, '&lt;') + '</span>';
         copie.appendChild(c);
       });
       if (!vrais.length){ copie.innerHTML = '<div style="color:#b9b2a0;font-size:.85rem;padding:.4rem">le tiroir, avec le bouton <b>?</b> du guide</div>'; }
-      tp.addEventListener('click', () => { copie.style.display = copie.style.display === 'none' ? 'grid' : 'none'; });
-      rangee.appendChild(tp); rangee.appendChild(copie); texte.appendChild(rangee);
+      /* un appui sur les trois points : le sous-menu s'ouvre, le rond s'efface ;
+         la croix referme le sous-menu, et on retrouve le rond eclaire */
+      tp.addEventListener('click', () => { cadre.style.display = 'block'; tp.style.display = 'none'; });
+      croix.addEventListener('click', () => { cadre.style.display = 'none'; tp.style.display = 'grid'; });
+      rangee.appendChild(tp); rangee.appendChild(cadre); texte.appendChild(rangee);
       boutons.innerHTML = '';
       boutons.style.display = 'grid'; boutons.style.gap = '.7rem'; boutons.style.marginTop = '.4rem';
       const oui2 = document.createElement('button');
