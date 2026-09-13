@@ -975,6 +975,7 @@
   let depuisSommaire = false;
   function finir(complete){
     arrete = true; fil++;   /* tout ce que revient d'avant est desormais perime */
+    rendreLaVeille();
     libererOrientation();   /* « choisis le mode qui te va » : la visite finie, il tourne s'il veut */
     try { son.onended = son.onerror = null; } catch(e){}
     try { son.pause(); } catch(e){}
@@ -1492,9 +1493,23 @@
     }
   }
 
+  /* 13 septembre, 10 h — Mickael : « le retroeclairage se baisse pendant la
+     visite ». Le verrou de veille du film, etendu a la visite : l'ecran reste
+     allume tant qu'elle parle, et on le rend a la fin. Redemande si l'appli
+     revient au premier plan (un appel le fait tomber). */
+  let veille = null;
+  function tenirEveille(){
+    try {
+      if (!('wakeLock' in navigator)) return;
+      navigator.wakeLock.request('screen').then(v => { veille = v; }).catch(() => {});
+    } catch(e){}
+  }
+  function rendreLaVeille(){ try { if (veille){ veille.release().catch(() => {}); veille = null; } } catch(e){} }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && document.body.classList.contains('enVisite')) tenirEveille(); });
+
   function lancer(){
     /* un depart neuf annule tout ce qui pouvait encore tourner */
-    fil++; arrete = false;
+    fil++; arrete = false; tenirEveille();
     verrouillerPortrait();
     taireLaMusique();
     try { son.pause(); son.onended = son.onerror = null; } catch(e){}
@@ -1680,7 +1695,7 @@
        dans l'etat ou cet arret le trouve, et on le joue depuis le debut. */
     allerA(k){
       k = Math.max(0, Math.min(ARRETS.length - 1, k));
-      fil++; arrete = false; enPause = false;
+      fil++; arrete = false; enPause = false; tenirEveille();
       effacerLeBonjour(); mesurerLaBarreDuBas();
       /* les deux premiers arrets se jouent en haut de l'accueil ; les autres
          partent de la ou la page est, comme en vrai */
