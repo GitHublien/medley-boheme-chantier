@@ -5697,9 +5697,11 @@ body[data-pour] #bandeau{ display:flex; }
      premiere fois (c'est la visite guidee qui l'a remplacee). Plus personne ne
      voyait donc la carte. Elle se propose maintenant a la premiere entree, sans
      condition : « veux-tu passer par le guide ? », oui ou non. */
-  let deja = null;
-  try { deja = localStorage.getItem('boheme-tuto'); } catch(e){}
-  if (deja !== '1') setTimeout(proposer, 1400);
+  let deja = null, carteVue = null;
+  try { deja = localStorage.getItem('boheme-tuto'); carteVue = localStorage.getItem('boheme-bienvenue-vue-2'); } catch(e){}
+  /* si la carte des commandes n'a pas encore ete vue, c'est elle qui appellera
+     proposerVisite() en se fermant ; sinon on propose tout de suite */
+  if (deja !== '1' && carteVue === '1') setTimeout(proposer, 1400);
 })();
 </script>
 <script>
@@ -6837,7 +6839,8 @@ const VERSION_APPLI = '11/09/2026 · 19h31';
   <p class="astuce"><b>Une chose à retenir :</b> si un dessin ne te dit rien, <b>garde le doigt appuyé dessus</b> une seconde. Une explication apparaît, sans rien déclencher. Et la visite guidée complète reste à ta disposition : le <b>point d'interrogation</b>, dans les autres commandes.</p>
   <div class="gestes">
     <button id="bvEntrer">Entrer dans l'atelier</button>
-    <button class="doux" id="bvTout">Relire le mode d'emploi</button>
+    <!-- 13 septembre, 13 h 30 — Mickael : « Relire le mode d'emploi, c'est les infos,
+         ca n'a rien a faire ici. » Retire. -->
   </div>
 </div></div>
 
@@ -6871,10 +6874,7 @@ const VERSION_APPLI = '11/09/2026 · 19h31';
     setTimeout(() => { try { window.proposerVisite && window.proposerVisite(); } catch(e){} }, 700);
   }
   document.getElementById('bvEntrer').addEventListener('click', fermer);
-  document.getElementById('bvTout').addEventListener('click', () => {
-    try { localStorage.setItem(CLE, '1'); } catch(e){}
-    location.href = 'BIENVENUE — Bohème.html' + location.search;
-  });
+
   /* ORDRE DES CARTES (8 sept) : la liste des six prénoms passe EN PREMIER — elle
      s'ouvre par-dessus sinon, et on ne voit jamais les prénoms. La bienvenue attend
      que la question « qui es-tu » soit réglée. */
