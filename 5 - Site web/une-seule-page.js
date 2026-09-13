@@ -110,12 +110,24 @@
      ne descend pas le son : il n'y a pas de départ, donc rien à adoucir. */
   window.__pageUnique = href => estCousable(href);
 
+  /* ⚠️ 13 septembre, 10 h 30 — Mickael : « quand on manipule beaucoup, le menu
+     marche mais Atelier et Textes ne repondent plus, jusqu'a fermer l'appli. »
+     Pendant un chargement, on ignore les autres clics (enCours). Si l'appli
+     passe en arriere-plan au milieu (WhatsApp, un appel), le telephone gele le
+     chargement, qui ne finit jamais : le verrou restait pose pour toujours.
+     Deux garde-fous : le chargement a 8 s maximum (au-dela, on abandonne et le
+     lien suivant passe par la voie classique), et un verrou de plus de 12 s
+     est considere comme mort. */
+  let depuis = 0;
   async function aller(href, viaHistorique){
-    if (enCours) return;
-    enCours = href;
+    if (enCours && Date.now() - depuis < 12000) return;
+    enCours = href; depuis = Date.now();
     fil.className = 'enRoute part';
+    const ctrl = ('AbortController' in window) ? new AbortController() : null;
+    const garde = ctrl ? setTimeout(() => ctrl.abort(), 8000) : null;
     try {
-      const r = await fetch(href, { credentials:'same-origin' });
+      const r = await fetch(href, { credentials:'same-origin', signal: ctrl ? ctrl.signal : undefined });
+      if (garde) clearTimeout(garde);
       if (!r.ok) throw new Error('réponse ' + r.status);
       const texte = await r.text();
       const neuve = new DOMParser().parseFromString(texte, 'text/html');
@@ -206,9 +218,12 @@
       fil.className = 'enRoute fini';
       setTimeout(() => { fil.className = 'enRoute'; }, 700);
     } catch(e){
-      /* on ne reste jamais coincé : au moindre doute, la vieille méthode */
-      location.href = href;
-    } finally { enCours = null; }
+      if (garde) clearTimeout(garde);
+      /* on ne reste jamais coincé : au moindre doute, la vieille méthode.
+         (Si l'appli est en arriere-plan, on attend qu'elle revienne : un
+         changement de page invisible est perdu.) */
+      if (document.visibilityState === 'visible') location.href = href;
+    } finally { enCours = null; fil.className = 'enRoute'; }
   }
 
   document.addEventListener('click', e => {
