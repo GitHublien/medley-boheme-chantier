@@ -5609,26 +5609,36 @@ body[data-pour] #bandeau{ display:flex; }
     const NOMS_B = { adrien:'Adrien', stephanie:'Stéphanie', candice:'Candice',
                      mickael:'Mickaël', bry:'Bry', elie:'Élie' };
     const qui = (window.CIBLE_PERSO || '').toLowerCase();
-    if (qui && NOMS_B[qui]){
-      titre.textContent = 'Bienvenue, ' + NOMS_B[qui] + ' !';
-      texte.innerHTML =
-        'Cet atelier est le tien. Trois conseils pour bien travailler :<br>'
-        + '🎧 mets des écouteurs · ⛶ passe en plein écran · 📱 garde le téléphone à la verticale.<br><br>'
-        + 'Ton <b>aide personnelle est déjà allumée</b> : elle t\'annonce « prépare-toi », '
-        + '« à toi », et tes chœurs s\'affichent dans ta couleur. '
-        + 'Le bouton ✦ Aide l\'éteint quand tu connaîtras tes passages.<br><br>'
-        + 'Veux-tu passer par la salle d\'entraînement ? Tu y essaies toutes les commandes, sans risque.';
-    } else {
-      titre.textContent = 'Première fois ici ?';
-      texte.textContent = 'Veux-tu passer par la salle d\'entraînement ? Une copie de l\'atelier où tu essaies chaque commande, sans risque — cinq minutes, et tu sauras tout faire.';
-    }
+    /* 13 septembre, 13 h 10 — Mickael : « c'est la premiere fois qu'il rentre
+       dans l'atelier : je te conseille vraiment de faire le guide. S'il appuie
+       sur Non, tu insistes un peu, sans obliger. » */
+    const prenom = (qui && NOMS_B[qui]) ? NOMS_B[qui] : '';
+    titre.textContent = prenom ? 'Bienvenue dans l’atelier, ' + prenom + '.' : 'Bienvenue dans l’atelier.';
+    texte.innerHTML =
+      'C’est ta première fois ici. Il y a un <b>guide</b> : il te montre chaque commande, une par une, '
+      + 'et il ne passe à la suivante que quand tu as fait le bon geste. Cinq minutes, une seule fois, et tu sauras tout faire.<br><br>'
+      + '🎧 Mets des écouteurs, et garde le téléphone à la verticale.';
     boutons.innerHTML = '';
     const oui = document.createElement('button');
-    oui.className = 't-oui'; oui.textContent = 'Oui, je m\'entraîne';
+    oui.className = 't-oui'; oui.textContent = 'Oui, je fais le guide';
     oui.onclick = () => { location.href = 'TUTORIEL — Bohème.html' + location.search; };
     const non = document.createElement('button');
     non.textContent = 'Non merci';
-    non.onclick = finir;
+    non.onclick = () => {
+      /* on insiste un peu, sans obliger */
+      titre.textContent = 'Tu es sûr ?';
+      texte.innerHTML =
+        'Je te le conseille vraiment pour ta première fois : le guide évite de chercher pendant des jours ce qui est expliqué en cinq minutes.<br><br>'
+        + 'Si tu n’as pas le temps maintenant, aucun problème : tu le retrouveras quand tu veux avec le bouton <b>?</b>, en bas de l’atelier.';
+      boutons.innerHTML = '';
+      const oui2 = document.createElement('button');
+      oui2.className = 't-oui'; oui2.textContent = 'D’accord, je fais le guide';
+      oui2.onclick = () => { location.href = 'TUTORIEL — Bohème.html' + location.search; };
+      const non2 = document.createElement('button');
+      non2.textContent = 'Pas maintenant';
+      non2.onclick = finir;
+      boutons.appendChild(oui2); boutons.appendChild(non2);
+    };
     boutons.appendChild(oui); boutons.appendChild(non);
   }
 
@@ -6568,7 +6578,7 @@ const VERSION_APPLI = '11/09/2026 · 19h31';
     btnMaj:     ['Mise à jour', 'Va voir s\'il y a du nouveau et l\'installe. Rien à réinstaller à la main.'],
     btnIntro:   ['Revoir le film', 'Le film d\'ouverture, autant de fois que tu veux.'],
     btnPlein:   ['Plein écran', 'Cache tout ce qui n\'est pas le medley.'],
-    btnPresence:['Le visage', 'Celui de l'ouverture, en décoration. Il flotte en fond quand l'atelier est au repos, et il recule dès qu'il travaille. Un appui l'allume ou l'éteint.'],
+    btnPresence:['Le visage', 'Celui de l\'ouverture, en décoration. Il flotte en fond quand l\'atelier est au repos, et il recule dès qu\'il travaille. Un appui l\'allume ou l\'éteint.'],
     btnPlus:    ['Les autres commandes', 'Le style, le guide, la mise à jour, le film, le plein écran.'],
     btnQui:     ['Qui es-tu', 'Dis à l\'atelier qui tu es : il allume tes lignes dans ta couleur. Tu peux en changer quand tu veux.']
   };
