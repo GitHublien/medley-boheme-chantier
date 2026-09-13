@@ -601,6 +601,7 @@ function entrer(){
   curseur.classList.add('actif');
 }
 entree.addEventListener('click', entrer);
+entree.addEventListener('touchend', e => { entrer(); }, { passive: true });   /* iPhone : le toucher, pas seulement le clic */
 addEventListener('keydown', e => {
   if (!demarre && (e.key==='Enter'||e.key===' ')){ e.preventDefault(); entrer(); }
 });
@@ -860,7 +861,17 @@ function allerAuKaraoke(){
   try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch(e){}
   location.href = ou + (suite ? '?' + suite : '');
 }
-addEventListener('click', e => { if (demarre) partir(); });
+/* ⚠️ 13 septembre, 9 h 55 — URGENCE iPhone. Elie : « je clique sur le logo,
+   rien ne se passe. » Safari sur iPhone n'envoie PAS de « click » a la page
+   quand on touche un fond qui n'est ni un bouton ni un lien : le toucher etait
+   ignore. On ecoute donc aussi le toucher lui-meme (pointerup / touchend), et
+   le fond devient « cliquable » (cursor:pointer), l'autre condition d'Apple.
+   Le garde-fou « parti » empeche un double depart. */
+const departAuToucher = e => { if (!demarre || parti) return; if (e && e.target && e.target.closest && e.target.closest('button, a, #bSon, #bPlein')) return; partir(); };
+addEventListener('click', departAuToucher);
+addEventListener('pointerup', departAuToucher);
+addEventListener('touchend', departAuToucher, { passive: true });
+document.body.style.cursor = 'pointer';
 addEventListener('keydown', e => {
   if (demarre && (e.key==='Enter'||e.key===' ')){ e.preventDefault(); partir(); }
 });
