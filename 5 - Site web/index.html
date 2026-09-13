@@ -244,6 +244,17 @@ setTimeout(function(){ if (!document.querySelector('.ecran.la')){ var e = docume
   document.querySelectorAll('a[href$=".html"]').forEach(a => a.setAttribute('href', a.getAttribute('href') + suite));
 
   const ua = navigator.userAgent || '';
+  /* 13 septembre, 12 h 50 — le lien de remise a zero, pour tester « comme la
+     premiere fois » : ?zero=1 efface tout ce que le telephone avait retenu
+     (film vu, visite, prenom, bouton rouge, guide) et revient au premier ecran.
+     Il ne touche a rien d'autre. A donner a quelqu'un qui teste, jamais au groupe. */
+  try {
+    if (new URLSearchParams(location.search).get('zero') === '1'){
+      Object.keys(localStorage).filter(k => /^(boheme-|karaoke-|livre-|baron|hint_)/i.test(k)).forEach(k => localStorage.removeItem(k));
+      try { caches.keys().then(ks => ks.forEach(k => caches.delete(k))); } catch(e){}
+      location.replace(location.pathname + '?x=' + Date.now());
+    }
+  } catch(e){}
   const enApp = matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches || navigator.standalone === true;
   const iOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const android = /Android/i.test(ua);
