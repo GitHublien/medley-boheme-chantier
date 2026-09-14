@@ -22,7 +22,7 @@
   const CLE_VUE = 'boheme-atelier-visite-vue-1';
   const CLE_OU  = 'boheme-atelier-visite-ou-1';
   const DOSSIER = 'media/visite-atelier/';
-  const VERSION = '14b';   /* à changer quand les sons changent : casse le cache */
+  const VERSION = '14c';   /* à changer quand les sons changent : casse le cache */
   const VALIDES = ['adrien','stephanie','candice','mickael','bry','elie'];
   const apres = (f, ms) => setTimeout(f, ms);
   const $ = s => document.querySelector(s);
@@ -139,7 +139,7 @@
     #vaBarre .titre{ color:#b9b2a0; font:400 .85rem system-ui; letter-spacing:.06em; text-transform:uppercase; }
     #vaBarre .tr{ display:grid; gap:3px; } #vaBarre .tr i{ display:block; width:14px; height:1.5px; background:#f1d27a; }
     .vaCarte{ position:fixed; inset:0; z-index:159; display:grid; place-items:center; background:rgba(4,4,4,.82); backdrop-filter:blur(10px); padding:8vw; }
-    .vaCarte .bulle{ display:grid; gap:.7rem; text-align:center; max-width:22rem; background:rgba(12,11,10,.96);
+    .vaCarte .vaBulle{ display:grid; gap:.7rem; text-align:center; max-width:22rem; background:rgba(12,11,10,.96);
       border:1px solid rgba(212,175,55,.4); border-radius:1.1rem; padding:1.4rem 1.3rem; box-shadow:0 20px 60px rgba(0,0,0,.7); }
     .vaCarte h3{ margin:0; color:#f1d27a; font:700 1.25rem system-ui; }
     .vaCarte p{ margin:0 0 .3rem; color:#e8e2d2; font:400 .98rem system-ui; line-height:1.5; }
@@ -351,7 +351,7 @@
   function carteDeDepart(k, alors){
     const c = document.createElement('div'); c.className = 'vaCarte';
     const reprise = k > 0;
-    c.innerHTML = '<div class="bulle"><h3>' + (reprise ? 'On reprend la visite ?' : 'La visite de l\'atelier') + '</h3>'
+    c.innerHTML = '<div class="vaBulle"><h3>' + (reprise ? 'On reprend la visite ?' : 'La visite de l\'atelier') + '</h3>'
       + '<p>' + (reprise ? 'Tu t\'étais arrêté à l\'arrêt ' + (k + 1) + ' · ' + ARRETS[k].nom + '.' : 'Rudy et Koraly te montrent l\'atelier, bouton par bouton. Cinq minutes, et tu peux partir quand tu veux.') + '</p>'
       + '<p>🎧 Monte le son.</p>'
       + '<button class="oui">' + (reprise ? 'Reprendre là' : 'Commencer') + '</button>'
