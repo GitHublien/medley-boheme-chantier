@@ -22,7 +22,7 @@
   const CLE_VUE = 'boheme-atelier-visite-vue-1';
   const CLE_OU  = 'boheme-atelier-visite-ou-1';
   const DOSSIER = 'media/visite-atelier/';
-  const VERSION = '14h';   /* à changer quand les sons changent : casse le cache */
+  const VERSION = '14i';   /* à changer quand les sons changent : casse le cache */
   const EN_CHANTIER = true;   /* 14 septembre : le panneau « en chantier », à passer à false quand c'est fini */
   const VALIDES = ['adrien','stephanie','candice','mickael','bry','elie'];
   const apres = (f, ms) => setTimeout(f, ms);
@@ -45,14 +45,22 @@
      pendant : [{part, vise|bleu}] — à telle fraction du son, la lumière bouge. */
   const ARRETS = [
     /* 10 h 45 — « le premier geste vite, les blagues après, pendant que ça joue » */
-    { nom:'Bienvenue', seg:[ { son:'01-a', vise:'#lbPlay', attend:{ sel:'#lbPlay' } } ] },
-    { nom:'La lecture', seg:[ { son:'02-a', vise:'#lbPlay', silence:12000 } ] },
+    { nom:'Bienvenue', garderLaLecture:true, seg:[ { son:'01-a', vise:'#lbPlay', attend:{ sel:'#lbPlay' } } ] },
+    /* 12 h — calé sur les temps de la bande : « Paris 1978 » finit à 5,3 s,
+       « Un opéra rock… Starmania » à 12,0 s */
+    { nom:'La lecture', garderLaLecture:true, seg:[
+        { son:'02-a', aTemps:5.4 },
+        { son:'02-b', aTemps:12.2 },
+        { son:'02-c', silence:5000, vise:'#lbPlay', attend:{ sel:'#lbPlay' } },
+        { son:'02-d' } ] },
     { nom:'La barre de lecture', seg:[
         { son:'03-a', vise:'#lbBarre', attend:{ sel:'#lbBarre', evt:'input' } },
-        { son:'03-b', vise:'#lbBarre' } ] },
+        { son:'03-b', vise:'#lbPlay', attend:{ sel:'#lbPlay' } },
+        { son:'03-c' } ] },
     { nom:'Bloc précédent, bloc suivant', seg:[
-        { son:'04-a', vise:['#lbPrec', '#lbSuiv'], attend:{ sel:'#lbSuiv' } },
-        { son:'04-b', vise:['#lbPrec', '#lbSuiv'] } ] },
+        { son:'04-a', vise:'#lbSuiv', attend:{ sel:'#lbSuiv' } },
+        { son:'04-b', vise:'#lbPrec', attend:{ sel:'#lbPrec' } },
+        { son:'04-c' } ] },
     { nom:'Les phrases', seg:[
         { son:'05-a', vise:'.ligne:visible', attend:{ sel:'.ligne' } },
         { son:'05-b', vise:'.ligne:visible', attend:{ sel:'.ligne' } },
@@ -153,6 +161,7 @@
       font:600 1rem system-ui; letter-spacing:.03em; -webkit-tap-highlight-color:transparent; }
     #vaBarre button .x{ width:40px; height:40px; border-radius:50%; display:grid; place-items:center; border:1px solid rgba(212,175,55,.6);
       background:rgba(212,175,55,.08); font-size:18px; line-height:1; }
+    #vaBarre .pause .x{ font-size:15px; }
     #vaBarre .titre{ color:#b9b2a0; font:400 .85rem system-ui; letter-spacing:.06em; text-transform:uppercase; }
     #vaBarre .tr{ display:grid; gap:3px; } #vaBarre .tr i{ display:block; width:14px; height:1.5px; background:#f1d27a; }
     .vaCarte{ position:fixed; inset:0; z-index:159; display:grid; place-items:center; background:rgba(4,4,4,.82); backdrop-filter:blur(10px); padding:8vw; }
@@ -185,6 +194,7 @@
   const barre = el('vaBarre');
   barre.innerHTML = '<button class="fermer" title="Quitter la visite"><span class="x">✕</span></button>'
     + '<span class="titre" id="vaTitre"></span>'
+    + '<button class="pause" title="Pause"><span class="x">⏸</span></button>'
     + '<button class="menu" title="Sommaire"><span class="x"><span class="tr"><i></i><i></i><i></i></span></span></button>';
 
   /* ── la lumière ───────────────────────────────────────────────────────── */
@@ -243,11 +253,26 @@
     return DOSSIER + nom + '.mp3?v=' + VERSION;
   }
 
+  /* attendre que la bande de l'atelier atteigne un temps (au plein volume) ; si elle
+     ne joue pas, on n'attend pas plus de 15 s */
+  function attendreLaBande(t, monFil){
+    return new Promise(resolve => {
+      const au = $('#au'); const t0 = Date.now();
+      const tic = () => {
+        if (monFil !== fil || arrete) return resolve();
+        if (!au || au.currentTime >= t || Date.now() - t0 > 15000) return resolve();
+        apres(tic, 80);
+      };
+      tic();
+    });
+  }
   /* ── le geste attendu : on éclaire en pulsant, et on laisse passer le doigt ── */
   function attendreLeGeste(a, monFil){
     return new Promise(resolve => {
       document.body.classList.add('vaAttend');
+      const relance = apres(() => { if (monFil === fil && !arrete && !enPause){ try { const r = new Audio(DOSSIER + 'relance.mp3?v=' + VERSION); r.play().catch(() => {}); } catch(e){} } }, 25000);
       const fini = () => {
+        clearTimeout(relance);
         if (monFil !== fil) return;
         document.body.classList.remove('vaAttend');
         document.removeEventListener('click', surClic, true);
@@ -280,6 +305,7 @@
       if (s.avant && GESTES[s.avant]) await GESTES[s.avant]();
       eclairer(s.attend ? null : (s.vise || null));   /* avec un geste attendu : la lumière vient au « vas-y » */
       if (s.silence){ laisserEcouter(); await new Promise(r => apres(r, s.silence)); }   /* on laisse écouter */
+      if (s.aTemps){ laisserEcouter(); await attendreLaBande(s.aTemps, monFil); }
       if (arrete || monFil !== fil) return;
       baisserLAtelier();
       await direLeSon(s, monFil);
@@ -398,7 +424,10 @@
     else { son.play().catch(() => {}); fond.play().catch(() => {}); }
   }
   /* pendant que la voix parle, le voile transparent reçoit l'appui : pause / reprise */
-  voile.addEventListener('click', e => { e.stopPropagation(); basculerLaPause(); });
+  /* 12 h 30 — Mickaël : l'appui n'importe où « crée des interférences » : retiré ;
+     la pause est un bouton ⏸ dans la bande du haut */
+  voile.addEventListener('click', e => { e.stopPropagation(); });
+  barre.querySelector('.pause').addEventListener('click', () => { basculerLaPause(); barre.querySelector('.pause .x').textContent = enPause ? '▶' : '⏸'; });
   barre.querySelector('.fermer').addEventListener('click', () => finir(false));
   barre.querySelector('.menu').addEventListener('click', () => { finir(false); sommaire.hidden = false; });
 
