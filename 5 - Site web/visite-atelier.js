@@ -22,7 +22,7 @@
   const CLE_VUE = 'boheme-atelier-visite-vue-1';
   const CLE_OU  = 'boheme-atelier-visite-ou-1';
   const DOSSIER = 'media/visite-atelier/';
-  const VERSION = '14j';   /* à changer quand les sons changent : casse le cache */
+  const VERSION = '14k';   /* à changer quand les sons changent : casse le cache */
   const EN_CHANTIER = true;   /* 14 septembre : le panneau « en chantier », à passer à false quand c'est fini */
   const VALIDES = ['adrien','stephanie','candice','mickael','bry','elie'];
   const apres = (f, ms) => setTimeout(f, ms);
@@ -309,6 +309,7 @@
       if (arrete || monFil !== fil) return;
       baisserLAtelier();
       await direLeSon(s, monFil);
+      laisserEcouter();   /* ils se taisent : la bande remonte à plein */
       if (arrete || monFil !== fil) return;
       if (s.attend){ eclairer(s.vise || null); await attendreLeGeste(s.attend, monFil); }
       if (arrete || monFil !== fil) return;
@@ -394,8 +395,8 @@
     document.body.classList.remove('tiroirOuvert');
     try { const bc = $('#bienvenueCarte'); if (bc) bc.classList.remove('la'); } catch(e){}
     try { $('#menuB') && $('#menuB').classList.remove('vu'); } catch(e){}
-    baisserLAtelier();
-    fond.volume = 0; fond.currentTime = 0; fond.play().then(() => fondu(fond, VOLUME_FOND, 2500)).catch(() => {});
+    /* 13 h 30 — Mickaël : « enlève la musique derrière » : plus de fond ; et la bande
+       de l'atelier reste FORTE tant qu'ils ne parlent pas (on ne baisse qu'au son) */
     try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(() => {}); } catch(e){}
     jouer(k, monFil);
   }
