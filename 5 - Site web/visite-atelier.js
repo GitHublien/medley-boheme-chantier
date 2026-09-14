@@ -22,7 +22,8 @@
   const CLE_VUE = 'boheme-atelier-visite-vue-1';
   const CLE_OU  = 'boheme-atelier-visite-ou-1';
   const DOSSIER = 'media/visite-atelier/';
-  const VERSION = '14g';   /* à changer quand les sons changent : casse le cache */
+  const VERSION = '14h';   /* à changer quand les sons changent : casse le cache */
+  const EN_CHANTIER = true;   /* 14 septembre : le panneau « en chantier », à passer à false quand c'est fini */
   const VALIDES = ['adrien','stephanie','candice','mickael','bry','elie'];
   const apres = (f, ms) => setTimeout(f, ms);
   const $ = s => document.querySelector(s);
@@ -130,12 +131,19 @@
        sur l'OBJET lui-même, dans sa forme (rond pour un bouton rond, la ligne
        pour une phrase) : il s'éclaire, et respire quand on attend le geste. */
     #vaTrou{ display:none !important; }
-    .vaLumiere{ box-shadow:0 0 0 3px rgba(241,210,122,.95), 0 0 24px 8px rgba(241,210,122,.6) !important;
-      filter:brightness(1.35) saturate(1.15); position:relative; z-index:152; }
-    .vaLumiere.ligne, .vaLumiere#bandeau, .vaLumiere#menuB{ border-radius:10px; }
+    /* 11 h 20 — « je ne veux que de la lumière, pas de rond autour » : l'objet
+       entier s'éclaire (plus clair, plus chaud, un halo doux qui déborde de sa
+       forme), et respire quand on attend le geste. Aucun trait. */
+    .vaLumiere{ filter:brightness(1.7) saturate(1.3) drop-shadow(0 0 10px rgba(241,210,122,.95)) drop-shadow(0 0 26px rgba(241,210,122,.7)) !important;
+      position:relative; z-index:152; }
     body.vaAttend .vaLumiere{ animation:vaPulse 1.1s ease-in-out infinite; }
-    @keyframes vaPulse{ 0%,100%{ box-shadow:0 0 0 3px rgba(241,210,122,.8), 0 0 18px 4px rgba(241,210,122,.45); filter:brightness(1.2); }
-                        50%{ box-shadow:0 0 0 4px rgba(255,235,160,1), 0 0 46px 18px rgba(241,210,122,.9); filter:brightness(1.6); } }
+    @keyframes vaPulse{ 0%,100%{ filter:brightness(1.4) saturate(1.2) drop-shadow(0 0 8px rgba(241,210,122,.8)) drop-shadow(0 0 18px rgba(241,210,122,.5)); }
+                        50%{ filter:brightness(2) saturate(1.4) drop-shadow(0 0 14px rgba(255,235,160,1)) drop-shadow(0 0 40px rgba(241,210,122,.95)); } }
+    /* la pause, d'un appui n'importe où */
+    #vaPause{ position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom) + 96px); transform:translateX(-50%); z-index:158;
+      padding:10px 18px; border-radius:999px; border:1px solid rgba(212,175,55,.6); background:rgba(8,7,6,.92); color:#f1d27a;
+      font:600 .95rem system-ui; letter-spacing:.03em; display:none; pointer-events:none; }
+    body.vaEnPause #vaPause{ display:block; }
     .vaBleu{ box-shadow:0 0 0 2px rgba(40,210,255,.9), 0 0 18px rgba(40,210,255,.6) !important; border-radius:8px; }
     #vaBarre{ position:fixed; z-index:153; left:0; right:0; top:0; display:flex; align-items:center; justify-content:space-between;
       height:var(--vaH); box-sizing:border-box; padding:env(safe-area-inset-top) 12px 0; background:rgba(8,7,6,.96); border-bottom:1px solid rgba(212,175,55,.85);
@@ -266,17 +274,17 @@
     ici = k; marquer();
     try { localStorage.setItem(CLE_OU, JSON.stringify({ k, quand: Date.now() })); } catch(e){}
     const a = ARRETS[k];
-    $('#vaTitre').textContent = (k + 1) + ' · ' + a.nom;
+    $('#vaTitre').textContent = (EN_CHANTIER ? '🚧 ' : '') + (k + 1) + ' · ' + a.nom;
     for (const s of a.seg){
       if (arrete || monFil !== fil) return;
       if (s.avant && GESTES[s.avant]) await GESTES[s.avant]();
-      eclairer(s.vise || null);
+      eclairer(s.attend ? null : (s.vise || null));   /* avec un geste attendu : la lumière vient au « vas-y » */
       if (s.silence){ laisserEcouter(); await new Promise(r => apres(r, s.silence)); }   /* on laisse écouter */
       if (arrete || monFil !== fil) return;
       baisserLAtelier();
       await direLeSon(s, monFil);
       if (arrete || monFil !== fil) return;
-      if (s.attend) await attendreLeGeste(s.attend, monFil);
+      if (s.attend){ eclairer(s.vise || null); await attendreLeGeste(s.attend, monFil); }
       if (arrete || monFil !== fil) return;
       if (s.apres && GESTES[s.apres]) await GESTES[s.apres]();
     }
@@ -333,9 +341,29 @@
   construireLeSommaire();
 
   /* ── départ, arrêt, fin ──────────────────────────────────────────────── */
+  let placeGardee = null;
+  function remettreLAtelierAuDebut(){
+    try {
+      const au = $('#au'); if (!au) return;
+      if (placeGardee === null) placeGardee = au.currentTime || 0;
+      try { au.pause(); } catch(e){}
+      if (typeof allerBloc === 'function'){ allerBloc(0); try { au.pause(); } catch(e){} }
+      else au.currentTime = 0;
+    } catch(e){}
+  }
+  function rendreSaPlace(){
+    try {
+      const au = $('#au');
+      if (au && placeGardee !== null && placeGardee > 2){ au.currentTime = placeGardee; try { if (typeof reprendre === 'function') reprendre(); } catch(e){} }
+    } catch(e){}
+    placeGardee = null;
+  }
   function lancer(k){
     k = k || 0;
     arrete = false; fil++; const monFil = fil;
+    /* 11 h 20 — « à partir du moment où l'on entre dans le guide, ça revient au
+       début ; et à la fin, on retrouve l'endroit où on travaillait » */
+    if (k === 0) remettreLAtelierAuDebut();
     document.body.classList.add('enVisiteAtelier');
     document.body.classList.remove('tiroirOuvert');
     try { const bc = $('#bienvenueCarte'); if (bc) bc.classList.remove('la'); } catch(e){}
@@ -347,9 +375,10 @@
   }
   function finir(complete){
     arrete = true; fil++;
-    document.body.classList.remove('enVisiteAtelier', 'vaAttend');
+    document.body.classList.remove('enVisiteAtelier', 'vaAttend', 'vaEnPause'); enPause = false;
     try { son.pause(); } catch(e){}
     arreterLaLecture();
+    rendreSaPlace();
     fondu(fond, 0, 1200);
     eclairer(null); bleuir(null);
     rendreLAtelier();
@@ -360,6 +389,16 @@
     if (complete){ try { localStorage.setItem(CLE_VUE, '1'); } catch(e){} }
     if (depuisSommaire){ depuisSommaire = false; sommaire.hidden = false; }
   }
+  const pauseEtiquette = el('vaPause'); pauseEtiquette.textContent = '⏸ en pause · appuie pour reprendre';
+  function basculerLaPause(){
+    if (arrete) return;
+    enPause = !enPause;
+    document.body.classList.toggle('vaEnPause', enPause);
+    if (enPause){ try { son.pause(); fond.pause(); } catch(e){} }
+    else { son.play().catch(() => {}); fond.play().catch(() => {}); }
+  }
+  /* pendant que la voix parle, le voile transparent reçoit l'appui : pause / reprise */
+  voile.addEventListener('click', e => { e.stopPropagation(); basculerLaPause(); });
   barre.querySelector('.fermer').addEventListener('click', () => finir(false));
   barre.querySelector('.menu').addEventListener('click', () => { finir(false); sommaire.hidden = false; });
 
@@ -369,6 +408,7 @@
     const reprise = k > 0;
     c.innerHTML = '<div class="vaBulle"><h3>' + (reprise ? 'On reprend la visite ?' : 'La visite de l\'atelier') + '</h3>'
       + '<p>' + (reprise ? 'Tu t\'étais arrêté à l\'arrêt ' + (k + 1) + ' · ' + ARRETS[k].nom + '.' : 'Rudy et Koraly te montrent l\'atelier, bouton par bouton. Cinq minutes, et tu peux partir quand tu veux.') + '</p>'
+      + (EN_CHANTIER ? '<p style="color:#ffc814;border:1px solid rgba(255,200,20,.5);border-radius:10px;padding:.5rem .7rem;font-size:.9rem">🚧 <b>En chantier.</b> Ce guide est en cours de fabrication : il peut être en désordre, ça ne casse rien.</p>' : '')
       + '<p>🎧 Monte le son.</p>'
       + '<button class="oui">' + (reprise ? 'Reprendre là' : 'Commencer') + '</button>'
       + (reprise ? '<button class="non">Depuis le début</button>' : '<button class="non">Plus tard</button>') + '</div>';
