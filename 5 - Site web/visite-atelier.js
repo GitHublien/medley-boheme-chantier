@@ -22,7 +22,7 @@
   const CLE_VUE = 'boheme-atelier-visite-vue-1';
   const CLE_OU  = 'boheme-atelier-visite-ou-1';
   const DOSSIER = 'media/visite-atelier/';
-  const VERSION = '14l';   /* à changer quand les sons changent : casse le cache */
+  const VERSION = '14m';   /* à changer quand les sons changent : casse le cache */
   const EN_CHANTIER = true;   /* 14 septembre : le panneau « en chantier », à passer à false quand c'est fini */
   const VALIDES = ['adrien','stephanie','candice','mickael','bry','elie'];
   const apres = (f, ms) => setTimeout(f, ms);
@@ -51,7 +51,8 @@
     { nom:'La lecture', garderLaLecture:true, seg:[
         { son:'02-a', aTemps:5.4 },
         { son:'02-b', aTemps:12.2 },
-        { son:'02-c', silence:5000, vise:'#lbPlay', attend:{ sel:'#lbPlay' } },
+        /* 14 h — on laisse écouter jusqu'à la fin de « Il est minuit. Les zonards descendent sur la ville. » (28,5 s) */
+        { son:'02-c', aTemps:28.8, vise:'#lbPlay', attend:{ sel:'#lbPlay' } },
         { son:'02-d' } ] },
     { nom:'La barre de lecture', seg:[
         { son:'03-a', vise:'#lbBarre', attend:{ sel:'#lbBarre', evt:'input' } },
@@ -224,7 +225,7 @@
   function bleuir(sel){ document.querySelectorAll('.vaBleu').forEach(e => e.classList.remove('vaBleu')); if (sel) visibles(sel).forEach(e => e.classList.add('vaBleu')); }
 
   /* ── les sons : la voix, la musique de fond, l'atelier baissé ─────────── */
-  const son = document.createElement('audio'); son.preload = 'auto';
+  const son = document.createElement('audio'); son.preload = 'auto'; son.volume = 1;
   const fond = document.createElement('audio'); fond.loop = true; fond.preload = 'auto'; fond.src = DOSSIER + 'fond-mediterranean-dusk.mp3';
   const VOLUME_FOND = 0.06;   /* « vraiment très, très douce » : −24 dB environ */
   /* 11 h 10 — Mickaël : « quand ils parlent, la musique très doucement ; quand
