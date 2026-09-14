@@ -5784,6 +5784,7 @@ function bascule_deux_fichiers(){
   const auI = new Audio('media/bande-diffusee.mp3');
   auI.preload = 'auto';
   auI.volume = 0;
+  window.__auI = auI;   /* 14 septembre : la visite de l'atelier baisse aussi cette bande sous les voix */
 
   let modeBande = 'voix';
   try { if (localStorage.getItem('boheme-bande') === 'instru') modeBande = 'instru'; } catch(e){}
@@ -7331,5 +7332,5 @@ input, textarea, [contenteditable="true"], .copiable, .copiable *{
     document.addEventListener(nom, e => { if (!libre(e.target)) e.preventDefault(); }));
 })();
 </script>
-<script src="visite-atelier.js?v=14f"></script>
+<script src="visite-atelier.js?v=14g"></script>
 </body>

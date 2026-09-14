@@ -22,7 +22,7 @@
   const CLE_VUE = 'boheme-atelier-visite-vue-1';
   const CLE_OU  = 'boheme-atelier-visite-ou-1';
   const DOSSIER = 'media/visite-atelier/';
-  const VERSION = '14f';   /* à changer quand les sons changent : casse le cache */
+  const VERSION = '14g';   /* à changer quand les sons changent : casse le cache */
   const VALIDES = ['adrien','stephanie','candice','mickael','bry','elie'];
   const apres = (f, ms) => setTimeout(f, ms);
   const $ = s => document.querySelector(s);
@@ -78,7 +78,7 @@
         { son:'11-b', vise:['#btnAide', '.b-aller'], attend:{ sel:'#btnAide' } },
         { son:'11-c', vise:'#btnAide' } ] },
     { nom:'La bande', seg:[
-        { son:'12-a', vise:'#btnBande', attend:{ sel:'#btnBande' } },
+        { son:'12-a', vise:'#btnBande', avant:'lancerLaLecture', attend:{ sel:'#btnBande' } },
         { son:'12-b', vise:'#btnBande', pendant:[{ part:.5, bleu:'.ligne.q-off', vise:'.ligne.q-off:visible' }] } ] },
     { nom:'Le doigt posé', seg:[
         { son:'13-a', vise:'#btnBlocs', attend:{ sel:'#btnBlocs', evt:'long' } },
@@ -104,6 +104,8 @@
         apres(() => { devoiler(false); r(); }, 7600);
       });
     },
+    lancerLaLecture(){ lancerLaLecture(); return new Promise(r => apres(r, 800)); },
+    arreterLaLecture(){ arreterLaLecture(); return Promise.resolve(); },
     fermerLeTiroir(){ document.body.classList.remove('tiroirOuvert'); return new Promise(r => apres(r, 500)); },
     ouvrirLeTiroir(){ document.body.classList.add('tiroirOuvert'); return new Promise(r => apres(r, 500)); },
   };
@@ -204,13 +206,20 @@
   const son = document.createElement('audio'); son.preload = 'auto';
   const fond = document.createElement('audio'); fond.loop = true; fond.preload = 'auto'; fond.src = DOSSIER + 'fond-mediterranean-dusk.mp3';
   const VOLUME_FOND = 0.06;   /* « vraiment très, très douce » : −24 dB environ */
+  /* 11 h 10 — Mickaël : « quand ils parlent, la musique très doucement ; quand
+     ils se taisent pour laisser écouter, on l'entend ; et à la fin de l'arrêt,
+     elle s'arrête toute seule. » */
+  const BAS = 0.12;
   let volumesGardes = null;
+  const bandes = () => [...document.querySelectorAll('audio'), window.__auI].filter(a => a && a !== son && a !== fond);
   function baisserLAtelier(){
-    if (volumesGardes) return;
-    volumesGardes = [...document.querySelectorAll('audio')].filter(a => a !== son && a !== fond).map(a => [a, a.volume]);
-    volumesGardes.forEach(([a]) => { try { a.volume = Math.min(a.volume, 0.28); } catch(e){} });
+    if (!volumesGardes) volumesGardes = bandes().map(a => [a, a.volume]);
+    bandes().forEach(a => { try { a.volume = Math.min(a.volume, BAS); } catch(e){} });
   }
+  function laisserEcouter(){ (volumesGardes || bandes().map(a => [a, 1])).forEach(([a, v]) => { try { fondu(a, v, 600); } catch(e){} }); }
   function rendreLAtelier(){ if (!volumesGardes) return; volumesGardes.forEach(([a, v]) => { try { a.volume = v; } catch(e){} }); volumesGardes = null; }
+  function arreterLaLecture(){ bandes().forEach(a => { try { if (!a.paused) a.pause(); } catch(e){} }); }
+  function lancerLaLecture(){ const b = $('#lbPlay'); const au = $('#au'); if (b && au && au.paused) b.click(); }
   function fondu(a, vers, ms){
     const de = a.volume, t0 = performance.now();
     const pas = now => { const k = Math.min(1, (now - t0) / ms); a.volume = Math.min(1, Math.max(0, de + (vers - de) * k)); if (k < 1) requestAnimationFrame(pas); else if (vers === 0) a.pause(); };
@@ -262,8 +271,9 @@
       if (arrete || monFil !== fil) return;
       if (s.avant && GESTES[s.avant]) await GESTES[s.avant]();
       eclairer(s.vise || null);
-      if (s.silence) await new Promise(r => apres(r, s.silence));   /* on laisse écouter */
+      if (s.silence){ laisserEcouter(); await new Promise(r => apres(r, s.silence)); }   /* on laisse écouter */
       if (arrete || monFil !== fil) return;
+      baisserLAtelier();
       await direLeSon(s, monFil);
       if (arrete || monFil !== fil) return;
       if (s.attend) await attendreLeGeste(s.attend, monFil);
@@ -271,6 +281,7 @@
       if (s.apres && GESTES[s.apres]) await GESTES[s.apres]();
     }
     if (arrete || monFil !== fil) return;
+    if (!a.garderLaLecture) arreterLaLecture();   /* la musique ne continue jamais dans le vide */
     apres(() => jouer(k + 1, monFil), 500);
   }
   function direLeSon(s, monFil){
@@ -338,6 +349,7 @@
     arrete = true; fil++;
     document.body.classList.remove('enVisiteAtelier', 'vaAttend');
     try { son.pause(); } catch(e){}
+    arreterLaLecture();
     fondu(fond, 0, 1200);
     eclairer(null); bleuir(null);
     rendreLAtelier();
