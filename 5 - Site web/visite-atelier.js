@@ -22,7 +22,7 @@
   const CLE_VUE = 'boheme-atelier-visite-vue-1';
   const CLE_OU  = 'boheme-atelier-visite-ou-1';
   const DOSSIER = 'media/visite-atelier/';
-  const VERSION = '14m';   /* à changer quand les sons changent : casse le cache */
+  const VERSION = '14n';   /* à changer quand les sons changent : casse le cache */
   const EN_CHANTIER = true;   /* 14 septembre : le panneau « en chantier », à passer à false quand c'est fini */
   const VALIDES = ['adrien','stephanie','candice','mickael','bry','elie'];
   const apres = (f, ms) => setTimeout(f, ms);
@@ -49,7 +49,7 @@
     /* 12 h — calé sur les temps de la bande : « Paris 1978 » finit à 5,3 s,
        « Un opéra rock… Starmania » à 12,0 s */
     { nom:'La lecture', garderLaLecture:true, seg:[
-        { son:'02-a', aTemps:5.4 },
+        { son:'02-a', aTemps:6.2 },   /* 14 h 10 — six secondes de musique avant le premier mot */
         { son:'02-b', aTemps:12.2 },
         /* 14 h — on laisse écouter jusqu'à la fin de « Il est minuit. Les zonards descendent sur la ville. » (28,5 s) */
         { son:'02-c', aTemps:28.8, vise:'#lbPlay', attend:{ sel:'#lbPlay' } },
@@ -231,7 +231,7 @@
   /* 11 h 10 — Mickaël : « quand ils parlent, la musique très doucement ; quand
      ils se taisent pour laisser écouter, on l'entend ; et à la fin de l'arrêt,
      elle s'arrête toute seule. » */
-  const BAS = 0.05;   /* 13 h 50 — « quand elle dit trop génial, il faut que tu baisses » : très bas */
+  const BAS = 0.03;   /* 13 h 50 — « quand elle dit trop génial, il faut que tu baisses » : très bas */
   let volumesGardes = null;
   const bandes = () => [...document.querySelectorAll('audio'), window.__auI].filter(a => a && a !== son && a !== fond);
   function baisserLAtelier(){
