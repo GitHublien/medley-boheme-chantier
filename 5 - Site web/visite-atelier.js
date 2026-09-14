@@ -22,7 +22,7 @@
   const CLE_VUE = 'boheme-atelier-visite-vue-1';
   const CLE_OU  = 'boheme-atelier-visite-ou-1';
   const DOSSIER = 'media/visite-atelier/';
-  const VERSION = '14k';   /* à changer quand les sons changent : casse le cache */
+  const VERSION = '14l';   /* à changer quand les sons changent : casse le cache */
   const EN_CHANTIER = true;   /* 14 septembre : le panneau « en chantier », à passer à false quand c'est fini */
   const VALIDES = ['adrien','stephanie','candice','mickael','bry','elie'];
   const apres = (f, ms) => setTimeout(f, ms);
@@ -132,6 +132,9 @@
        faut qu'on voie l'atelier, que ça bouge. » Plus aucun voile sombre : l'atelier
        reste entièrement visible ; la chose montrée est cerclée d'or lumineux. Le
        voile transparent ne sert qu'à retenir les appuis pendant que la voix parle. */
+    /* 13 h 50 — Mickaël : « il faut que le lecteur reste visible pendant le guide » :
+       le lecteur du bas ne se cache jamais pendant la visite */
+    body.enVisiteAtelier #lecteurBas.cache{ transform:none !important; opacity:1 !important; pointer-events:auto !important; }
     #vaVoile{ position:fixed; inset:0; z-index:150; background:transparent; opacity:0; pointer-events:none; }
     body.enVisiteAtelier #vaVoile{ opacity:1; pointer-events:auto; }
     body.enVisiteAtelier.vaAttend #vaVoile{ pointer-events:none; }
@@ -227,7 +230,7 @@
   /* 11 h 10 — Mickaël : « quand ils parlent, la musique très doucement ; quand
      ils se taisent pour laisser écouter, on l'entend ; et à la fin de l'arrêt,
      elle s'arrête toute seule. » */
-  const BAS = 0.12;
+  const BAS = 0.05;   /* 13 h 50 — « quand elle dit trop génial, il faut que tu baisses » : très bas */
   let volumesGardes = null;
   const bandes = () => [...document.querySelectorAll('audio'), window.__auI].filter(a => a && a !== son && a !== fond);
   function baisserLAtelier(){
