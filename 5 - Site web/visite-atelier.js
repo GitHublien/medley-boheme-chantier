@@ -22,7 +22,7 @@
   const CLE_VUE = 'boheme-atelier-visite-vue-1';
   const CLE_OU  = 'boheme-atelier-visite-ou-1';
   const DOSSIER = 'media/visite-atelier/';
-  const VERSION = '14d';   /* à changer quand les sons changent : casse le cache */
+  const VERSION = '14e';   /* à changer quand les sons changent : casse le cache */
   const VALIDES = ['adrien','stephanie','candice','mickael','bry','elie'];
   const apres = (f, ms) => setTimeout(f, ms);
   const $ = s => document.querySelector(s);
@@ -43,10 +43,9 @@
      avant / apres : un geste fait par la visite, avant ou après le son.
      pendant : [{part, vise|bleu}] — à telle fraction du son, la lumière bouge. */
   const ARRETS = [
-    { nom:'Bienvenue', seg:[ { son:'01' } ] },
-    { nom:'La lecture', seg:[
-        { son:'02-a', vise:'#lbPlay', attend:{ sel:'#lbPlay' } },
-        { son:'02-b', vise:'#lbPlay' } ] },
+    /* 10 h 45 — « le premier geste vite, les blagues après, pendant que ça joue » */
+    { nom:'Bienvenue', seg:[ { son:'01-a', vise:'#lbPlay', attend:{ sel:'#lbPlay' } } ] },
+    { nom:'La lecture', seg:[ { son:'02-a', vise:'#lbPlay', silence:12000 } ] },
     { nom:'La barre de lecture', seg:[
         { son:'03-a', vise:'#lbBarre', attend:{ sel:'#lbBarre', evt:'input' } },
         { son:'03-b', vise:'#lbBarre' } ] },
@@ -267,6 +266,8 @@
       if (arrete || monFil !== fil) return;
       if (s.avant && GESTES[s.avant]) await GESTES[s.avant]();
       eclairer(s.vise || null);
+      if (s.silence) await new Promise(r => apres(r, s.silence));   /* on laisse écouter */
+      if (arrete || monFil !== fil) return;
       await direLeSon(s, monFil);
       if (arrete || monFil !== fil) return;
       if (s.attend) await attendreLeGeste(s.attend, monFil);
