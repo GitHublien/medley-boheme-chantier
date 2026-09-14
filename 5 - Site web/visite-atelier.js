@@ -22,7 +22,7 @@
   const CLE_VUE = 'boheme-atelier-visite-vue-1';
   const CLE_OU  = 'boheme-atelier-visite-ou-1';
   const DOSSIER = 'media/visite-atelier/';
-  const VERSION = '14e';   /* à changer quand les sons changent : casse le cache */
+  const VERSION = '14f';   /* à changer quand les sons changent : casse le cache */
   const VALIDES = ['adrien','stephanie','candice','mickael','bry','elie'];
   const apres = (f, ms) => setTimeout(f, ms);
   const $ = s => document.querySelector(s);
@@ -124,12 +124,16 @@
     #vaVoile{ position:fixed; inset:0; z-index:150; background:transparent; opacity:0; pointer-events:none; }
     body.enVisiteAtelier #vaVoile{ opacity:1; pointer-events:auto; }
     body.enVisiteAtelier.vaAttend #vaVoile{ pointer-events:none; }
-    #vaTrou{ position:fixed; z-index:151; pointer-events:none; opacity:0; transition:opacity .3s;
-      box-shadow:0 0 0 3px rgba(241,210,122,.95), 0 0 22px 6px rgba(241,210,122,.55), inset 0 0 18px rgba(241,210,122,.25); }
-    #vaTrou.la{ opacity:1; }
-    body.vaAttend #vaTrou{ animation:vaPulse 1.1s ease-in-out infinite; }
-    @keyframes vaPulse{ 0%,100%{ box-shadow:0 0 0 3px rgba(241,210,122,.8), 0 0 18px 4px rgba(241,210,122,.4), inset 0 0 14px rgba(241,210,122,.2); }
-                        50%{ box-shadow:0 0 0 4px rgba(255,235,160,1), 0 0 44px 16px rgba(241,210,122,.85), inset 0 0 26px rgba(241,210,122,.45); } }
+    /* 11 h — Mickaël : « pourquoi des carrés ? illumine. » La lumière est posée
+       sur l'OBJET lui-même, dans sa forme (rond pour un bouton rond, la ligne
+       pour une phrase) : il s'éclaire, et respire quand on attend le geste. */
+    #vaTrou{ display:none !important; }
+    .vaLumiere{ box-shadow:0 0 0 3px rgba(241,210,122,.95), 0 0 24px 8px rgba(241,210,122,.6) !important;
+      filter:brightness(1.35) saturate(1.15); position:relative; z-index:152; }
+    .vaLumiere.ligne, .vaLumiere#bandeau, .vaLumiere#menuB{ border-radius:10px; }
+    body.vaAttend .vaLumiere{ animation:vaPulse 1.1s ease-in-out infinite; }
+    @keyframes vaPulse{ 0%,100%{ box-shadow:0 0 0 3px rgba(241,210,122,.8), 0 0 18px 4px rgba(241,210,122,.45); filter:brightness(1.2); }
+                        50%{ box-shadow:0 0 0 4px rgba(255,235,160,1), 0 0 46px 18px rgba(241,210,122,.9); filter:brightness(1.6); } }
     .vaBleu{ box-shadow:0 0 0 2px rgba(40,210,255,.9), 0 0 18px rgba(40,210,255,.6) !important; border-radius:8px; }
     #vaBarre{ position:fixed; z-index:153; left:0; right:0; top:0; display:flex; align-items:center; justify-content:space-between;
       height:var(--vaH); box-sizing:border-box; padding:env(safe-area-inset-top) 12px 0; background:rgba(8,7,6,.96); border-bottom:1px solid rgba(212,175,55,.85);
@@ -183,23 +187,15 @@
   function eclairer(vise){
     derniereVise = vise;
     document.querySelectorAll('.vaBleu').forEach(e => e.classList.remove('vaBleu'));
-    if (!vise){ trou.classList.remove('la'); return; }
+    document.querySelectorAll('.vaLumiere').forEach(e => e.classList.remove('vaLumiere'));
+    if (!vise) return;
     const sels = Array.isArray(vise) ? vise : [vise];
-    const els = sels.flatMap(visibles);
-    if (!els.length){ trou.classList.remove('la'); return; }
-    const rs = els.map(e => e.getBoundingClientRect());
-    const l = Math.min(...rs.map(r => r.left)) - 8, t = Math.min(...rs.map(r => r.top)) - 8;
-    const rgt = Math.max(...rs.map(r => r.right)) + 8, b = Math.max(...rs.map(r => r.bottom)) + 8;
-    const w = rgt - l, h = b - t; const rond = els.length === 1 && w < 140 && Math.abs(w - h) < 20;
-    trou.style.left = l + 'px'; trou.style.top = t + 'px'; trou.style.width = w + 'px'; trou.style.height = h + 'px';
-    trou.style.borderRadius = rond ? '50%' : '16px';
-    trou.style.transition = 'left .4s, top .4s, width .4s, height .4s, opacity .3s';
-    trou.classList.add('la');
+    sels.flatMap(visibles).forEach(e => e.classList.add('vaLumiere'));
   }
   /* lever le voile un instant (le visage se voit sur toute la scène), puis le remettre */
   let derniereVise = null;
   function devoiler(oui){
-    if (oui){ trou.classList.remove('la'); }
+    if (oui){ document.querySelectorAll('.vaLumiere').forEach(e => e.classList.remove('vaLumiere')); }
     else eclairer(derniereVise);
   }
   function bleuir(sel){ document.querySelectorAll('.vaBleu').forEach(e => e.classList.remove('vaBleu')); if (sel) visibles(sel).forEach(e => e.classList.add('vaBleu')); }
@@ -346,7 +342,10 @@
     eclairer(null); bleuir(null);
     rendreLAtelier();
     if (attente) attente = null;
-    if (complete){ try { localStorage.setItem(CLE_VUE, '1'); localStorage.removeItem(CLE_OU); } catch(e){} }
+    /* quitter soi-même (✕, sommaire) = pas de reprise proposée ; la reprise ne
+       sert que si le téléphone a coupé la visite (un appel, une page fermée) */
+    try { localStorage.removeItem(CLE_OU); } catch(e){}
+    if (complete){ try { localStorage.setItem(CLE_VUE, '1'); } catch(e){} }
     if (depuisSommaire){ depuisSommaire = false; sommaire.hidden = false; }
   }
   barre.querySelector('.fermer').addEventListener('click', () => finir(false));
