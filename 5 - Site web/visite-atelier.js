@@ -22,7 +22,7 @@
   const CLE_VUE = 'boheme-atelier-visite-vue-1';
   const CLE_OU  = 'boheme-atelier-visite-ou-1';
   const DOSSIER = 'media/visite-atelier/';
-  const VERSION = '14n';   /* à changer quand les sons changent : casse le cache */
+  const VERSION = '14o';   /* à changer quand les sons changent : casse le cache */
   const EN_CHANTIER = true;   /* 14 septembre : le panneau « en chantier », à passer à false quand c'est fini */
   const VALIDES = ['adrien','stephanie','candice','mickael','bry','elie'];
   const apres = (f, ms) => setTimeout(f, ms);
@@ -49,7 +49,7 @@
     /* 12 h — calé sur les temps de la bande : « Paris 1978 » finit à 5,3 s,
        « Un opéra rock… Starmania » à 12,0 s */
     { nom:'La lecture', garderLaLecture:true, seg:[
-        { son:'02-a', aTemps:6.2 },   /* 14 h 10 — six secondes de musique avant le premier mot */
+        { son:'02-a', aTemps:5.4, sansBaisser:true },   /* « Trop génial » par-dessus la musique, sans la baisser */
         { son:'02-b', aTemps:12.2 },
         /* 14 h — on laisse écouter jusqu'à la fin de « Il est minuit. Les zonards descendent sur la ville. » (28,5 s) */
         { son:'02-c', aTemps:28.8, vise:'#lbPlay', attend:{ sel:'#lbPlay' } },
@@ -57,7 +57,7 @@
     { nom:'La barre de lecture', seg:[
         { son:'03-a', vise:'#lbBarre', attend:{ sel:'#lbBarre', evt:'input' } },
         { son:'03-b', vise:'#lbPlay', attend:{ sel:'#lbPlay' } },
-        { son:'03-c' } ] },
+        { son:'03-c', silence:6000 } ] },   /* 14 h 20 — six secondes de musique après le saut */
     { nom:'Bloc précédent, bloc suivant', seg:[
         { son:'04-a', vise:'#lbSuiv', attend:{ sel:'#lbSuiv' } },
         { son:'04-b', vise:'#lbPrec', attend:{ sel:'#lbPrec' } },
@@ -311,7 +311,7 @@
       if (s.silence){ laisserEcouter(); await new Promise(r => apres(r, s.silence)); }   /* on laisse écouter */
       if (s.aTemps){ laisserEcouter(); await attendreLaBande(s.aTemps, monFil); }
       if (arrete || monFil !== fil) return;
-      baisserLAtelier();
+      if (!s.sansBaisser) baisserLAtelier();
       await direLeSon(s, monFil);
       laisserEcouter();   /* ils se taisent : la bande remonte à plein */
       if (arrete || monFil !== fil) return;
