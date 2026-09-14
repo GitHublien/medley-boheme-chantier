@@ -20,3 +20,6 @@
 /5 - Site web/media/visite/*.wav
 /5 - Site web/MESSAGE WHATSAPP*
 /5 - Site web/PROMPT FLOW*
+
+# les 3 prises de chaque segment de la visite de l atelier : on ne publie que la retenue
+5 - Site web/media/visite-atelier/_prises/

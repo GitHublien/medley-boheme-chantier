@@ -5630,7 +5630,8 @@ body[data-pour] #bandeau{ display:flex; }
     boutons.innerHTML = '';
     const oui = document.createElement('button');
     oui.className = 't-oui'; oui.textContent = 'Oui, je fais le guide';
-    oui.onclick = () => { location.href = 'TUTORIEL — Bohème.html' + location.search; };
+    /* 14 septembre — le nouveau guide : la visite parlée de Rudy et Koraly, dans l'atelier même */
+    oui.onclick = () => { finir(); if (window.VISITE_ATELIER) window.VISITE_ATELIER.proposer(); else location.href = 'TUTORIEL — Bohème.html' + location.search; };
     const non = document.createElement('button');
     non.textContent = 'Non merci';
     non.onclick = () => {
@@ -5705,7 +5706,7 @@ body[data-pour] #bandeau{ display:flex; }
       boutons.style.display = 'grid'; boutons.style.gap = '.7rem'; boutons.style.marginTop = '.4rem';
       const oui2 = document.createElement('button');
       oui2.className = 't-oui'; oui2.textContent = 'D’accord, j’ai changé d’avis : je fais le guide';
-      oui2.onclick = () => { location.href = 'TUTORIEL — Bohème.html' + location.search; };
+      oui2.onclick = () => { finir(); if (window.VISITE_ATELIER) window.VISITE_ATELIER.proposer(); else location.href = 'TUTORIEL — Bohème.html' + location.search; };
       const non2 = document.createElement('button');
       non2.textContent = 'Non, pas maintenant';
       non2.onclick = finir;
@@ -5720,7 +5721,12 @@ body[data-pour] #bandeau{ display:flex; }
   bt.title = 'la salle d\'entraînement (le tutoriel)';
   bt.style.cssText = 'border:1px solid rgba(212,175,55,.55);background:rgba(212,175,55,.10);font-weight:800;min-width:50px;min-height:44px;font-size:20px;';
   bt.addEventListener('click', () => { montrerDepuisBouton(); });
-  function montrerDepuisBouton(){ location.href = 'TUTORIEL — Bohème.html' + location.search; }
+  /* 14 septembre — le « ? » ouvre la visite parlée : le sommaire si elle a déjà été vue, sinon la proposition */
+  function montrerDepuisBouton(){
+    const V = window.VISITE_ATELIER;
+    if (!V){ location.href = 'TUTORIEL — Bohème.html' + location.search; return; }
+    if (V.vue()) V.sommaire(); else V.proposer();
+  }
   const ancre = document.getElementById('btnBlocs') || document.getElementById('btnIntro');
   if (ancre && ancre.parentNode) ancre.parentNode.insertBefore(bt, ancre.nextSibling);
 
@@ -7325,4 +7331,5 @@ input, textarea, [contenteditable="true"], .copiable, .copiable *{
     document.addEventListener(nom, e => { if (!libre(e.target)) e.preventDefault(); }));
 })();
 </script>
+<script src="visite-atelier.js?v=14a"></script>
 </body>
