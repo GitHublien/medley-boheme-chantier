@@ -22,7 +22,7 @@
   const CLE_VUE = 'boheme-atelier-visite-vue-1';
   const CLE_OU  = 'boheme-atelier-visite-ou-1';
   const DOSSIER = 'media/visite-atelier/';
-  const VERSION = '14i';   /* à changer quand les sons changent : casse le cache */
+  const VERSION = '14j';   /* à changer quand les sons changent : casse le cache */
   const EN_CHANTIER = true;   /* 14 septembre : le panneau « en chantier », à passer à false quand c'est fini */
   const VALIDES = ['adrien','stephanie','candice','mickael','bry','elie'];
   const apres = (f, ms) => setTimeout(f, ms);
