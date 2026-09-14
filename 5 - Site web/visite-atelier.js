@@ -22,7 +22,7 @@
   const CLE_VUE = 'boheme-atelier-visite-vue-1';
   const CLE_OU  = 'boheme-atelier-visite-ou-1';
   const DOSSIER = 'media/visite-atelier/';
-  const VERSION = '14c';   /* à changer quand les sons changent : casse le cache */
+  const VERSION = '14d';   /* à changer quand les sons changent : casse le cache */
   const VALIDES = ['adrien','stephanie','candice','mickael','bry','elie'];
   const apres = (f, ms) => setTimeout(f, ms);
   const $ = s => document.querySelector(s);
@@ -118,15 +118,19 @@
     body.enVisiteAtelier .barre{ top: var(--vaH) !important; }
     body.enVisiteAtelier #bandeau{ top: calc(var(--h-barre, 0px) + var(--vaH)) !important; }
     body.enVisiteAtelier .tiroir{ top: calc(62px + env(safe-area-inset-top) + var(--vaH)) !important; }
-    #vaVoile{ position:fixed; inset:0; z-index:150; background:rgba(4,4,4,.86); opacity:0; pointer-events:none; transition:opacity .5s; }
+    /* 14 septembre, 10 h 20 — Mickaël : « je ne t'avais pas demandé du noir. Il
+       faut qu'on voie l'atelier, que ça bouge. » Plus aucun voile sombre : l'atelier
+       reste entièrement visible ; la chose montrée est cerclée d'or lumineux. Le
+       voile transparent ne sert qu'à retenir les appuis pendant que la voix parle. */
+    #vaVoile{ position:fixed; inset:0; z-index:150; background:transparent; opacity:0; pointer-events:none; }
     body.enVisiteAtelier #vaVoile{ opacity:1; pointer-events:auto; }
     body.enVisiteAtelier.vaAttend #vaVoile{ pointer-events:none; }
     #vaTrou{ position:fixed; z-index:151; pointer-events:none; opacity:0; transition:opacity .3s;
-      box-shadow:0 0 0 9999px rgba(4,4,4,.9), 0 0 0 2px rgba(241,210,122,.5), 0 0 26px 8px rgba(241,210,122,.35); }
+      box-shadow:0 0 0 3px rgba(241,210,122,.95), 0 0 22px 6px rgba(241,210,122,.55), inset 0 0 18px rgba(241,210,122,.25); }
     #vaTrou.la{ opacity:1; }
     body.vaAttend #vaTrou{ animation:vaPulse 1.1s ease-in-out infinite; }
-    @keyframes vaPulse{ 0%,100%{ box-shadow:0 0 0 9999px rgba(4,4,4,.9), 0 0 0 2px rgba(241,210,122,.5), 0 0 26px 8px rgba(241,210,122,.35); }
-                        50%{ box-shadow:0 0 0 9999px rgba(4,4,4,.9), 0 0 0 3px rgba(241,210,122,.95), 0 0 40px 14px rgba(241,210,122,.7); } }
+    @keyframes vaPulse{ 0%,100%{ box-shadow:0 0 0 3px rgba(241,210,122,.8), 0 0 18px 4px rgba(241,210,122,.4), inset 0 0 14px rgba(241,210,122,.2); }
+                        50%{ box-shadow:0 0 0 4px rgba(255,235,160,1), 0 0 44px 16px rgba(241,210,122,.85), inset 0 0 26px rgba(241,210,122,.45); } }
     .vaBleu{ box-shadow:0 0 0 2px rgba(40,210,255,.9), 0 0 18px rgba(40,210,255,.6) !important; border-radius:8px; }
     #vaBarre{ position:fixed; z-index:153; left:0; right:0; top:0; display:flex; align-items:center; justify-content:space-between;
       height:var(--vaH); box-sizing:border-box; padding:env(safe-area-inset-top) 12px 0; background:rgba(8,7,6,.96); border-bottom:1px solid rgba(212,175,55,.85);
@@ -180,10 +184,10 @@
   function eclairer(vise){
     derniereVise = vise;
     document.querySelectorAll('.vaBleu').forEach(e => e.classList.remove('vaBleu'));
-    if (!vise){ trou.classList.remove('la'); voile.style.background = 'rgba(4,4,4,.86)'; return; }
+    if (!vise){ trou.classList.remove('la'); return; }
     const sels = Array.isArray(vise) ? vise : [vise];
     const els = sels.flatMap(visibles);
-    if (!els.length){ trou.classList.remove('la'); voile.style.background = 'rgba(4,4,4,.86)'; return; }
+    if (!els.length){ trou.classList.remove('la'); return; }
     const rs = els.map(e => e.getBoundingClientRect());
     const l = Math.min(...rs.map(r => r.left)) - 8, t = Math.min(...rs.map(r => r.top)) - 8;
     const rgt = Math.max(...rs.map(r => r.right)) + 8, b = Math.max(...rs.map(r => r.bottom)) + 8;
@@ -191,12 +195,12 @@
     trou.style.left = l + 'px'; trou.style.top = t + 'px'; trou.style.width = w + 'px'; trou.style.height = h + 'px';
     trou.style.borderRadius = rond ? '50%' : '16px';
     trou.style.transition = 'left .4s, top .4s, width .4s, height .4s, opacity .3s';
-    trou.classList.add('la'); voile.style.background = 'transparent';
+    trou.classList.add('la');
   }
   /* lever le voile un instant (le visage se voit sur toute la scène), puis le remettre */
   let derniereVise = null;
   function devoiler(oui){
-    if (oui){ trou.classList.remove('la'); voile.style.background = 'transparent'; }
+    if (oui){ trou.classList.remove('la'); }
     else eclairer(derniereVise);
   }
   function bleuir(sel){ document.querySelectorAll('.vaBleu').forEach(e => e.classList.remove('vaBleu')); if (sel) visibles(sel).forEach(e => e.classList.add('vaBleu')); }
