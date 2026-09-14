@@ -3849,8 +3849,13 @@ if (SUR_MOBILE){
      d'accueil ni le bouton rouge. L'atelier a donc SON prenom (boheme-atelier-pour),
      qui prime ; sinon il prend celui du site. Et l'atelier n'ecrit plus jamais
      le prenom du site : seule la page « Mon prenom » le fait. */
+  /* ⚠️ 14 septembre — Mickael : « le rond, c'est une paire de lunettes, pas une
+     identite. » Le prenom choisi dans l'atelier ne vaut que pour la seance
+     (sessionStorage) : en quittant l'atelier et en revenant, on redevient soi
+     (le prenom de l'accueil). L'ancienne memoire durable est effacee. */
   let propre = '';
-  try { propre = (localStorage.getItem('boheme-atelier-pour') || '').toLowerCase(); } catch(e){}
+  try { localStorage.removeItem('boheme-atelier-pour'); } catch(e){}
+  try { propre = (sessionStorage.getItem('boheme-atelier-pour') || '').toLowerCase(); } catch(e){}
   let qui = (new URLSearchParams(location.search).get('pour') || '').toLowerCase();
   if (VALIDES.includes(propre)) qui = propre;
   else if (!VALIDES.includes(qui)){
@@ -6543,6 +6548,8 @@ const VERSION_APPLI = '11/09/2026 · 19h31';
   const pour = new URLSearchParams(location.search).get('pour');
   b.href = 'ACCUEIL — Bohème.html' + (pour ? '?pour=' + encodeURIComponent(pour) : '');
   b.style.cssText = 'text-decoration:none;display:inline-flex;align-items:center;';
+  /* on quitte l'atelier : on enleve les lunettes (14 septembre) */
+  b.addEventListener('click', () => { try { sessionStorage.removeItem('boheme-atelier-pour'); } catch(e){} });
   /* EN TÊTE de la barre, et mis en avant : c'est la sortie, elle doit sauter aux yeux */
   b.style.cssText += 'border:1px solid rgba(212,175,55,.7);background:rgba(212,175,55,.16);font-weight:600;';
   (function poser(){
@@ -6992,7 +6999,7 @@ const VERSION_APPLI = '11/09/2026 · 19h31';
 
 <div id="quiEsTu"><div class="dedans">
   <h2>Qui es-tu ?</h2>
-  <p>Touche ton prénom. L'atelier allumera <b>tes</b> lignes dans <b>ta</b> couleur, et te préviendra avant chacune de tes entrées. Tu pourras en changer quand tu veux.</p>
+  <p>Appuie sur un prénom : l'atelier allume <b>ses</b> lignes dans <b>sa</b> couleur, et prévient avant chacune de ses entrées. Le temps de cette séance ; en revenant dans l'atelier, tu redeviens toi.</p>
   <div class="noms">
     <button class="n" data-qui="adrien"    style="--c:#ffc814">Adrien</button>
     <button class="n" data-qui="stephanie" style="--c:#ff4fa8">Stéphanie</button>
@@ -7003,6 +7010,11 @@ const VERSION_APPLI = '11/09/2026 · 19h31';
   </div>
   <div class="apres">
     <button id="qetSans">Je regarde sans choisir</button>
+    <!-- 14 septembre — Mickael : « si la personne s'est trompee de prenom au depart,
+         elle sera toujours Stephanie ». Ici, on ne fait que regarder a la place d'un
+         autre ; l'identite se corrige dans « Mon prenom », pour toute l'application. -->
+    <a id="qetPasMoi" href="PRENOM — Bohème.html" style="display:block;margin-top:14px;font-size:.86rem;color:#b9b2a0;text-decoration:none;line-height:1.5">
+      Ce n'est pas toi ? <b style="color:#f1d27a;font-weight:600;text-decoration:underline">Changer mon prénom pour toute l'application</b></a>
   </div>
 </div></div>
 
@@ -7015,7 +7027,7 @@ const VERSION_APPLI = '11/09/2026 · 19h31';
   if (!carte) return;
   const params = new URLSearchParams(location.search);
   let actuel = null;
-  try { actuel = localStorage.getItem('boheme-atelier-pour'); } catch(e){}
+  try { actuel = sessionStorage.getItem('boheme-atelier-pour'); } catch(e){}
   if (!actuel) actuel = params.get('pour');
   try { if (!actuel) actuel = localStorage.getItem('boheme-pour'); } catch(e){}
 
@@ -7028,8 +7040,8 @@ const VERSION_APPLI = '11/09/2026 · 19h31';
 
   carte.querySelectorAll('button.n').forEach(b => b.addEventListener('click', () => {
     const q = b.dataset.qui;
-    /* le prenom de l'ATELIER seulement ; celui du site ne bouge pas */
-    try { localStorage.setItem('boheme-atelier-pour', q); } catch(e){}
+    /* les lunettes : le prenom de l'ATELIER, pour cette seance seulement */
+    try { sessionStorage.setItem('boheme-atelier-pour', q); } catch(e){}
     const p = new URLSearchParams(location.search);
     p.delete('pour'); p.delete('bienvenue'); p.set('x', Date.now());
     location.replace(location.pathname + '?' + p.toString());
@@ -7064,7 +7076,7 @@ const VERSION_APPLI = '11/09/2026 · 19h31';
   try {
     dejaDemande = localStorage.getItem('boheme-nom-demande');
     sansNom     = localStorage.getItem('boheme-sans-nom');
-    dejaConnu   = localStorage.getItem('boheme-atelier-pour') || localStorage.getItem('boheme-pour');
+    dejaConnu   = sessionStorage.getItem('boheme-atelier-pour') || localStorage.getItem('boheme-pour');
   } catch(e){}
   if (dejaDemande !== '1' && sansNom !== '1' && !dejaConnu && !actuel){
     try { localStorage.setItem('boheme-nom-demande', '1'); } catch(e){}

@@ -879,7 +879,7 @@ function mmss(t){ t = Math.max(0, Math.round(t));
 /* 13 septembre — le guide est celui de l'ATELIER : il prend le prenom de l'atelier
    s'il en a un (boheme-atelier-pour), sinon celui du lien, sinon celui du site */
 let QUI = '';
-try { QUI = (localStorage.getItem('boheme-atelier-pour') || '').toLowerCase(); } catch(e){}
+try { QUI = (sessionStorage.getItem('boheme-atelier-pour') || '').toLowerCase(); } catch(e){}
 if (!PRENOMS[QUI]) QUI = (new URLSearchParams(location.search).get('pour') || '').toLowerCase();
 if (!PRENOMS[QUI]){ try { QUI = (localStorage.getItem('boheme-pour') || '').toLowerCase(); } catch(e){} }
 if (!PRENOMS[QUI]) QUI = '';
