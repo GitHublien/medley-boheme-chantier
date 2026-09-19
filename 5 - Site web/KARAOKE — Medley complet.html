@@ -1007,7 +1007,10 @@ function positionCible(){
   const el = LIGNES[courante].el;
   /* avec le bandeau en haut, la ligne vivante se pose plus bas :
      elle reste au centre de l'espace qui lui est laissé */
-  const part = document.body.dataset.pour ? 0.50 : 0.40;
+  let part = document.body.dataset.pour ? 0.50 : 0.40;
+  /* 15/09 — pendant la visite de l'atelier, sa bande en haut prend de la place :
+     la ligne vivante descend pour rester sous le bandeau, jamais derrière */
+  if (document.body.classList.contains('enVisiteAtelier')) part = 0.62;
   return Math.max(0, el.offsetTop - scene.clientHeight * part);
 }
 
@@ -3518,12 +3521,12 @@ const AVEC = {
   resteMin:6,  resteMax:9,
   premiere:8,  zIndex:0
 };
-let mode = localStorage.getItem('boheme-presence') || 'avec';
+let mode = localStorage.getItem('boheme-presence') || 'sans';   /* 16/09 — Mickaël : le visage est ÉTEINT par défaut ; il ne s'allume que si on le veut */
 if (mode === 'douce' || mode === 'pleine') mode = 'avec';   /* anciens noms */
 
 window.PRESENCE = Object.assign({}, AVEC);
 </script>
-<script src="presence.js"></script>
+<script src="presence.js?v=17n"></script>
 <script>
 (function(){
   const corps = document.body;
@@ -6094,10 +6097,17 @@ const VERSION_APPLI = '11/09/2026 · 19h31';
   .barre{ transition:transform .55s cubic-bezier(0.32,0.72,0,1), opacity .55s cubic-bezier(0.32,0.72,0,1); }
   .barre.cache{ transform:translateY(-112%); opacity:0; pointer-events:none; }
 }
+/* 14 septembre, 15 h 50 — le nom du bloc, pendant la glissade seulement (Mickaël : « léger ») */
+#lbBloc{ position:absolute; left:50%; bottom:calc(100% + 8px); transform:translateX(-50%); white-space:nowrap;
+  padding:6px 12px; border-radius:999px; background:rgba(8,7,6,.94); border:1px solid rgba(212,175,55,.55);
+  color:#f1d27a; font:600 13px system-ui; letter-spacing:.02em; opacity:0; pointer-events:none; transition:opacity .15s; }
+#lbBloc.la{ opacity:1; }
+#lbRang1{ position:relative; }
 </style>
 <div id="lecteurBas">
   <div id="lbRang1">
     <span id="lbCourant">0:00</span>
+    <span id="lbBloc"></span>
     <input id="lbBarre" type="range" min="0" max="1000" value="0" step="1">
     <span id="lbTotal">–:––</span>
   </div>
@@ -6150,11 +6160,25 @@ const VERSION_APPLI = '11/09/2026 · 19h31';
 
   /* le rond : pendant qu'on le tient, on montre où l'on va ;
      on ne saute qu'au lâcher */
-  barre.addEventListener('input', () => { glisse = true; peindre(); });
+  /* pendant la glissade : le nom du bloc visé, au-dessus de la barre */
+  const etiqBloc = document.getElementById('lbBloc');
+  function nommerLeBloc(){
+    try {
+      if (!isFinite(au.duration)) return;
+      const t = barre.value / 1000 * au.duration; let b = null;
+      BLOCS.forEach(x => { if (t >= debutBloc(x)) b = x; });
+      if (b){ etiqBloc.textContent = b.num + ' · ' + b.titre; etiqBloc.classList.add('la'); }
+    } catch(e){}
+  }
+  barre.addEventListener('input', () => { glisse = true; peindre(); nommerLeBloc(); });
   const lacher = () => {
     if (!glisse) return;
     glisse = false;
+    etiqBloc.classList.remove('la');
     if (isFinite(au.duration)) au.currentTime = barre.value/1000 * au.duration;
+    /* 14 septembre, 15 h 30 — Mickaël : « quand on appuie sur la barre, que le texte
+       se mette directement à cet endroit », même à l'arrêt, comme les flèches de bloc */
+    try { reprendre(); } catch(e){}
   };
   barre.addEventListener('change', lacher);
   barre.addEventListener('pointerup', lacher);
@@ -6176,6 +6200,10 @@ const VERSION_APPLI = '11/09/2026 · 19h31';
   const actif = () => getComputedStyle(lb).display !== 'none';
   let minuteurCache = null;
   function cacher(){
+    /* 14 septembre, 15 h 40 — Mickaël : « laisser le lecteur tout le temps là, en dur » :
+       se cacher obligeait à toucher l'écran, et le toucher tombait sur une phrase. Le
+       lecteur ne s'efface plus jamais (même règle que la barre du haut). */
+    return;
     if (au.paused || !actif()) return;
     /* seul le LECTEUR du bas s'efface pendant le chant. La barre du
        haut, elle, reste EN DUR : toutes les commandes, tout le
@@ -7190,14 +7218,18 @@ body.aideAllumee .barre .b-aller.la{
   box-shadow:0 0 14px rgba(212,175,55,.35);
 }
 #btnPresence.endormi{
-  opacity:.45 !important; border-color:rgba(212,175,55,.26) !important;
+  opacity:.6 !important;   /* 16/09 — Mickaël : « je veux voir qu'il est barré » : plus lisible */ border-color:rgba(212,175,55,.26) !important;
   background:rgba(212,175,55,.05) !important; box-shadow:none;
 }
 #btnPresence.endormi::after{
-  content:''; position:absolute; left:14%; right:14%; top:50%;
-  height:1.5px; background:var(--or,#d4af37); opacity:.8; border-radius:2px;
-  transform:rotate(-38deg); transform-origin:center; z-index:2;
+  /* 16/09 — Mickaël : « quand je veux qu'il soit barré, je le veux vraiment » :
+     la barre traverse TOUT le bouton, d'un coin à l'autre (le bouton du tiroir
+     est haut : icône au-dessus du mot ; l'angle suit sa diagonale) */
+  content:''; position:absolute; left:-4%; right:-4%; top:50%;
+  height:3px; background:#f1d27a; opacity:1; border-radius:2px; box-shadow:0 0 4px rgba(0,0,0,.95);
+  transform:rotate(-28deg); transform-origin:center; z-index:2; pointer-events:none;
 }
+.barre #btnPresence.endormi::after{ transform:rotate(-38deg); left:10%; right:10%; }   /* dans la barre plate, comme avant */
 </style>
 
 <style>
@@ -7332,5 +7364,5 @@ input, textarea, [contenteditable="true"], .copiable, .copiable *{
     document.addEventListener(nom, e => { if (!libre(e.target)) e.preventDefault(); }));
 })();
 </script>
-<script src="visite-atelier.js?v=14o"></script>
+<script src="visite-atelier.js?v=17v"></script>
 </body>

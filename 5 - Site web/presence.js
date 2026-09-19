@@ -99,7 +99,7 @@ if (SUR_MOBILE){
    l'image ENTIÈRE, réduite : on voit enfin un visage, et il ne
    mange rien. (Le fond noir de la vidéo disparaît de lui-même :
    elle est posée en mode « écran ».) */
-const REDUCTION_MOBILE = 0.5;
+let REDUCTION = 0.5, CENTRE = false;   /* CENTRE : l'apparition demandée par la visite, au milieu de l'écran, sans décalage */   /* la réduction sur téléphone (la visite peut la relever le temps d'une apparition) */
 
 /* ─── LES PLACES ─────────────────────────────────────────────────
    Où l'on emmène le visage, en pour cent de l'écran. Le zoom est
@@ -186,6 +186,7 @@ function venir(){
     const zoomMini = besoin > 0 ? 1/(1 - 2*besoin/0.9) : R.zoomMin;
     zoom = entre(Math.max(R.zoomMin, zoomMini), Math.max(R.zoomMax, zoomMini*1.25));
     dx = p.dx; dy = p.dy;
+    if (CENTRE){ dx = 0; dy = 12; zoom = 1.6; }   /* la visite : plein centre, un peu plus bas que le texte du haut */
   }
 
   const v = lecteurs[courant];
@@ -194,7 +195,7 @@ function venir(){
   const miroir = (!grosPlan && Math.random() < 0.4) ? -1 : 1;
   v.style.transition = 'opacity ' + (franche ? R.fonduBref : R.fondu) + 's ease';
   v.style.objectPosition = '50% 42%';        /* le visage est là, on n'y touche pas */
-  const z = SUR_MOBILE ? zoom * REDUCTION_MOBILE : zoom;
+  const z = SUR_MOBILE ? zoom * REDUCTION : zoom;
   v.style.transform = `scale(${z}) translate(${dx/z}%, ${dy/z}%) scaleX(${miroir})`;
   v.style.filter = `blur(${flou}px)`;
   v.style.webkitMaskImage = masque;
@@ -234,6 +235,17 @@ window.presence = {
   arreter(){ arrete = true; clearTimeout(minuteur);
              lecteurs.forEach(v => { v.style.opacity='0'; try{v.pause();}catch(e){} }); },
   maintenant(){ venir(); },
+  /* 18/09 — pour la visite guidée : une apparition FRANCHE, nette, en grand,
+     pendant `secondes`, quels que soient les réglages discrets du téléphone ;
+     puis on rend les réglages habituels. */
+  montrer(secondes){
+    const garde = { force:R.force, franche:R.franche, chance:R.chance, flou:R.flou, flouGros:R.flouGros, resteMin:R.resteMin, resteMax:R.resteMax, chanceGros:R.chanceGros };
+    const gardeRed = REDUCTION;
+    Object.assign(R, { force:0.95, franche:0.95, chance:1, flou:0, flouGros:0, resteMin:secondes, resteMax:secondes, chanceGros:0 });
+    REDUCTION = 0.85;
+    clearTimeout(minuteur); arrete = false; CENTRE = true; venir(); CENTRE = false;
+    setTimeout(() => { Object.assign(R, garde); REDUCTION = gardeRed; }, (secondes + 2) * 1000);
+  },
   regler(o){ Object.assign(R, o); }
 };
 
