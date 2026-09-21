@@ -38,6 +38,22 @@ self.addEventListener('fetch', e => {
   if (u.origin !== location.origin) return;
   /* la racine d'un dossier (…/elie/) est une page : elle aussi doit être fraîche */
   const estPage = TOUJOURS_NEUF.test(u.pathname) || u.pathname.endsWith('/');
+  /* 21/09 — LES VOIX DE LA VISITE, GARDÉES ICI. Mickaël, en 5G : « des pauses terribles,
+     dix secondes avant que le mec réponde ». Chaque réplique est un fichier, et le
+     navigateur les redemandait au réseau toutes les dix minutes. Désormais : une voix
+     (ou une vidéo) de la visite déjà entendue est rendue depuis ce cache, sans réseau ;
+     et la visite les demande d'avance (voir précharger() dans visite-atelier.js). */
+  if (/\/media\/visite-atelier\/[^?]+\.(?:mp3|mp4)$/i.test(u.pathname)){
+    e.respondWith((async () => {
+      const cache = await caches.open('va-media');
+      const deja = await cache.match(r.url);
+      if (deja) return deja;
+      const rep = await fetch(r);
+      if (rep && rep.ok && rep.status === 200) { try { await cache.put(r.url, rep.clone()); } catch (err) {} }
+      return rep;
+    })());
+    return;
+  }
   if (!estPage) return;
   e.respondWith((async () => {
     try {

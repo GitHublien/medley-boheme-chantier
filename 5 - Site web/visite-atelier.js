@@ -22,7 +22,7 @@
   const CLE_VUE = 'boheme-atelier-visite-vue-1';
   const CLE_OU  = 'boheme-atelier-visite-ou-1';
   const DOSSIER = 'media/visite-atelier/';
-  const VERSION = '18a';   /* à changer quand les sons changent : casse le cache */
+  const VERSION = '18b';   /* à changer quand les sons changent : casse le cache */
   const EN_CHANTIER = true;
   /* le mode TRAVAIL (chantier local, 14 h 45) : pause à la fin de chaque arrêt,
      Continuer / Rejouer / Sommaire, et reprise là où on s'était arrêté */
@@ -675,7 +675,7 @@
   async function jouer(k, monFil){
     if (arrete || monFil !== fil) return;
     if (k >= ARRETS.length) return finir(true);
-    ici = k; marquer();
+    ici = k; marquer(); precharger(k);
     try { localStorage.setItem(CLE_OU, JSON.stringify({ k, quand: Date.now() })); } catch(e){}
     const a = ARRETS[k];
     $('#vaTitre').textContent = (EN_CHANTIER ? '🚧 ' : '') + (k + 1) + ' · ' + a.nom;
@@ -826,9 +826,25 @@
     } catch(e){}
     placeGardee = null;
   }
+  /* 21/09 — on demande D'AVANCE les voix de cet arrêt et du suivant (et les vidéos qui
+     vont avec) : le service worker les garde, et l'enchaînement ne dépend plus de la 5G. */
+  const dejaDemande = new Set();
+  function precharger(k){
+    try {
+      const noms = [];
+      [k, k + 1].forEach(i => { const a = ARRETS[i]; if (a) a.seg.forEach(s => { if (s.son) noms.push(s.son); }); });
+      const urls = noms.map(cheminDuSon);
+      if (k >= 6 && k <= 8) urls.push(DOSSIER + 'faux-accueil.mp4?v=16t', DOSSIER + 'tele-elie.mp4', DOSSIER + 'visage-flippant.mp4', DOSSIER + 'clic.mp3?v=16v');   /* les mêmes adresses exactes que dans les gestes */
+      for (let j = urls.length - 1; j >= 0; j--) if (dejaDemande.has(urls[j])) urls.splice(j, 1);
+      urls.forEach(u => dejaDemande.add(u));
+      let i = 0; const suivant = () => { if (i >= urls.length) return; const u = urls[i++]; fetch(u, { credentials: 'same-origin' }).then(r => r.arrayBuffer ? r.arrayBuffer() : null).catch(() => {}).finally(suivant); };
+      suivant(); suivant();   /* deux à la fois */
+    } catch(e){}
+  }
   function lancer(k){
     k = k || 0;
     arrete = false; fil++; const monFil = fil;
+    precharger(k);
     /* 11 h 20 — « à partir du moment où l'on entre dans le guide, ça revient au
        début ; et à la fin, on retrouve l'endroit où on travaillait » */
     if (k === 0) remettreLAtelierAuDebut();
