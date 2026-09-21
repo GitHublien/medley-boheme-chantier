@@ -22,7 +22,7 @@
   const CLE_VUE = 'boheme-atelier-visite-vue-1';
   const CLE_OU  = 'boheme-atelier-visite-ou-1';
   const DOSSIER = 'media/visite-atelier/';
-  const VERSION = '18b';   /* à changer quand les sons changent : casse le cache */
+  const VERSION = '18c';   /* à changer quand les sons changent : casse le cache */
   const EN_CHANTIER = true;
   /* le mode TRAVAIL (chantier local, 14 h 45) : pause à la fin de chaque arrêt,
      Continuer / Rejouer / Sommaire, et reprise là où on s'était arrêté */
@@ -71,7 +71,7 @@
         { son:'02-c', aTemps:28.8, vise:'#lbPlay', attend:{ sel:'#lbPlay' } },
         { son:'02-d' } ] },
     { nom:'La barre de lecture', garderLaLecture:true, seg:[   /* la lecture continue vers l'arrêt 4 */
-        { son:'03-a', vise:'#lbBarre', attend:{ sel:'#lbBarre', evt:'input' } },
+        { son:'03-a', vise:'#lbBarre', pendant:[{ part:.02, fleche:'#lbBarre', duree:3400 }], attend:{ sel:'#lbBarre', evt:'input' } },   /* « Juste au-dessus, il y a cette barre » : la flèche d'or la montre */
         { son:'03-b', vise:'#lbPlay', attend:{ sel:'#lbPlay' } },
         { son:'03-c', silence:1000, baisserA:0.38 },   /* 15 h 10 — une seconde de musique, puis « Waouh, tac ! » avec la musique à moitié */
         { son:'03-d', silence:3000, baisserA:0.38 } ] },   /* trois secondes de musique, puis Koraly, musique à moitié */
@@ -374,6 +374,9 @@
       padding:10px 18px; border-radius:999px; border:1px solid rgba(212,175,55,.6); background:rgba(8,7,6,.92); color:#f1d27a;
       font:600 .95rem system-ui; letter-spacing:.03em; display:none; pointer-events:none; }
     body.vaEnPause #vaPause{ display:block; }
+    /* la flèche d'or (21/09) : elle bat vers la cible */
+    @keyframes vaBat{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(14px); } }
+    .vaFleche.vaFlecheBat svg{ animation:vaBat .9s ease-in-out infinite; }
     /* le visage qui fait peur (18/09) : en grand, au milieu, le noir de la vidéo se fond dans la page */
     #vaVisage{ position:fixed; left:50%; top:52%; height:min(78vh, 140vw); aspect-ratio:9/16; transform:translate(-50%,-50%) scale(.92); z-index:165;
       mix-blend-mode:screen; opacity:0; transition:opacity .7s, transform 1.2s cubic-bezier(.2,.8,.2,1); pointer-events:none; object-fit:contain; }
@@ -533,6 +536,24 @@
     requestAnimationFrame(() => { c.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(3)'; });
     if (gigote) apres(() => { c.style.setProperty('--dx', dx + 'px'); c.style.setProperty('--dy', dy + 'px'); c.classList.add('vaGigote'); }, 1250);
     avant = c;
+  }
+  /* 21/09 — Mickaël : « quand elle dit "juste au-dessus", les yeux montent tout en haut ;
+     une flèche qui montre la barre, puis disparaît ». Un chevron d'or, un halo, un
+     petit rebond vers la cible, et il s'efface tout seul. */
+  function montrerLaFleche(sel, duree){
+    const e = visibles(sel)[0]; if (!e) return;
+    document.querySelectorAll('.vaFleche').forEach(f => f.remove());
+    const r = e.getBoundingClientRect();
+    const f = document.createElement('div'); f.className = 'vaFleche';
+    f.innerHTML = '<svg viewBox="0 0 64 80" width="64" height="80"><defs><linearGradient id="vaOr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3c4"/><stop offset=".5" stop-color="#f1d27a"/><stop offset="1" stop-color="#b8892b"/></linearGradient></defs>'
+      + '<path d="M32 6 L32 50" stroke="url(#vaOr)" stroke-width="7" stroke-linecap="round" fill="none"/>'
+      + '<path d="M12 40 L32 66 L52 40" stroke="url(#vaOr)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
+    const x = Math.min(innerWidth - 40, Math.max(40, r.left + r.width * 0.72));   /* vers la droite de la barre, là où elle dit d'appuyer */
+    f.style.cssText = 'position:fixed;left:' + (x - 32) + 'px;top:' + (r.top - 96) + 'px;z-index:166;pointer-events:none;opacity:0;'
+      + 'filter:drop-shadow(0 0 6px rgba(255,235,160,.95)) drop-shadow(0 0 18px rgba(241,210,122,.7));transition:opacity .45s;';
+    document.body.appendChild(f);
+    requestAnimationFrame(() => { f.style.opacity = '1'; f.classList.add('vaFlecheBat'); });
+    apres(() => { f.style.opacity = '0'; apres(() => f.remove(), 500); }, duree);
   }
   function bleuir(sel){ document.querySelectorAll('.vaBleu').forEach(e => e.classList.remove('vaBleu')); if (sel) visibles(sel).forEach(e => e.classList.add('vaBleu')); }
 
@@ -753,6 +774,7 @@
           if (g.vise !== undefined) eclairer(g.vise);
           if (g.bleu !== undefined) bleuir(g.bleu);
           if (g.zoom !== undefined) zoomer(g.zoom, g.gigote, g.montre);
+          if (g.fleche) montrerLaFleche(g.fleche, g.duree || 3200);
           if (g.geste && GESTES[g.geste]) GESTES[g.geste]();
         }
         if (!restants.length) clearInterval(guetter);
