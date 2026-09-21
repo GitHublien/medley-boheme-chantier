@@ -22,7 +22,7 @@
   const CLE_VUE = 'boheme-atelier-visite-vue-1';
   const CLE_OU  = 'boheme-atelier-visite-ou-1';
   const DOSSIER = 'media/visite-atelier/';
-  const VERSION = '17y';   /* à changer quand les sons changent : casse le cache */
+  const VERSION = '17z';   /* à changer quand les sons changent : casse le cache */
   const EN_CHANTIER = true;
   /* le mode TRAVAIL (chantier local, 14 h 45) : pause à la fin de chaque arrêt,
      Continuer / Rejouer / Sommaire, et reprise là où on s'était arrêté */

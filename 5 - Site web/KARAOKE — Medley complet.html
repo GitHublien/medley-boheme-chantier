@@ -6274,6 +6274,11 @@ const VERSION_APPLI = '11/09/2026 · 19h31';
     promesse = e;
     const barre = document.querySelector('.barre');
     if (!barre || document.getElementById('btnInstall')) return;
+    /* 21/09 — Mickaël : sur téléphone, ce bouton sans icône faisait un rond vide dans
+       la barre et poussait le micro sur une deuxième ligne. Sur téléphone, l'installation
+       se fait à la porte (« installer, ou rien ») : on ne l'ajoute qu'à l'ordinateur.
+       Et jamais sur le chantier. */
+    if (matchMedia('(pointer: coarse)').matches || /medley-boheme-chantier/.test(location.pathname)) return;
     const b = document.createElement('button');
     b.className = 'btn-reg'; b.id = 'btnInstall';
     b.textContent = '📲 Installer l\'appli';
@@ -7364,5 +7369,5 @@ input, textarea, [contenteditable="true"], .copiable, .copiable *{
     document.addEventListener(nom, e => { if (!libre(e.target)) e.preventDefault(); }));
 })();
 </script>
-<script src="visite-atelier.js?v=17y"></script>
+<script src="visite-atelier.js?v=17z"></script>
 </body>
