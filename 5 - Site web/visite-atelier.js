@@ -22,11 +22,14 @@
   const CLE_VUE = 'boheme-atelier-visite-vue-1';
   const CLE_OU  = 'boheme-atelier-visite-ou-1';
   const DOSSIER = 'media/visite-atelier/';
-  const VERSION = '18c';   /* à changer quand les sons changent : casse le cache */
-  const EN_CHANTIER = true;
+  const VERSION = '18d';   /* à changer quand les sons changent : casse le cache */
   /* le mode TRAVAIL (chantier local, 14 h 45) : pause à la fin de chaque arrêt,
      Continuer / Rejouer / Sommaire, et reprise là où on s'était arrêté */
   const CHANTIER = location.hostname === 'localhost' || /medley-boheme-chantier/.test(location.pathname);   /* 19/09 : le chantier vit aussi sur GitHub, à part */
+  const EN_CHANTIER = CHANTIER;   /* 21/09 : le 🚧 et la carte « en chantier » ne s'affichent que sur le chantier */
+  /* 21/09 — PUBLICATION PARTIELLE : chez les six, la visite s'arrête après le visage (9 arrêts) ;
+     la suite (10 à 14) reste sur le chantier tant qu'elle n'est pas validée. */
+  const PUBLIES = CHANTIER ? 99 : 9;
   const PAS_A_PAS = CHANTIER;
   /* 21/09 — diagnostic du chantier : au chargement, la composition de la barre part sur ntfy (chantier seulement) */
   if (CHANTIER && location.hostname !== 'localhost') setTimeout(() => { try {
@@ -696,6 +699,7 @@
   async function jouer(k, monFil){
     if (arrete || monFil !== fil) return;
     if (k >= ARRETS.length) return finir(true);
+    if (k >= PUBLIES) return finirSurLaSuite();
     ici = k; marquer(); precharger(k);
     try { localStorage.setItem(CLE_OU, JSON.stringify({ k, quand: Date.now() })); } catch(e){}
     const a = ARRETS[k];
@@ -799,13 +803,14 @@
     sommaire.querySelectorAll('.liste button:not(.marqueItem)').forEach((b, i) => { if (i < ARRETS.length) b.classList.toggle('vu', i <= ici); });
   }
   function construireLeSommaire(){
-    sommaire.innerHTML = '<h2>La visite de l\'atelier</h2><p class="sous">Rudy et Koraly · quatorze arrêts</p><div class="liste"></div>'
+    sommaire.innerHTML = '<h2>La visite de l\'atelier</h2><p class="sous">Rudy et Koraly · ' + (PUBLIES < ARRETS.length ? 'neuf arrêts, la suite bientôt' : 'quatorze arrêts') + '</p><div class="liste"></div>'
       + '<div class="bande"><button class="fermer"><span class="x">✕</span></button><button class="debut">▶ Depuis le début</button>'
       + '<button class="menu"><span class="x"><span class="tr" style="display:grid;gap:3px"><i style="display:block;width:14px;height:1.5px;background:#f1d27a"></i><i style="display:block;width:14px;height:1.5px;background:#f1d27a"></i><i style="display:block;width:14px;height:1.5px;background:#f1d27a"></i></span></span></button></div>';
     const liste = sommaire.querySelector('.liste');
     ARRETS.forEach((a, i) => {
-      const b = document.createElement('button'); b.innerHTML = '<span class="n">' + (i + 1) + '</span><span>' + a.nom + '</span>';
-      b.addEventListener('click', () => { sommaire.hidden = true; depuisSommaire = true; lancer(i); });
+      const b = document.createElement('button'); b.innerHTML = '<span class="n">' + (i + 1) + '</span><span>' + a.nom + (i >= PUBLIES ? ' <small style="opacity:.6">· bientôt</small>' : '') + '</span>';
+      if (i >= PUBLIES){ b.disabled = true; b.style.opacity = '.45'; }
+      else b.addEventListener('click', () => { sommaire.hidden = true; depuisSommaire = true; lancer(i); });
       liste.appendChild(b);
     });
     if (CHANTIER){
@@ -889,6 +894,14 @@
     document.querySelectorAll('[data-va-parti]').forEach(o => { o.classList.remove('vaParti'); o.removeAttribute('data-va-parti'); });
     avant = null; avantOrig = null; voile.style.background = 'transparent';
   }
+  /* la carte de fin provisoire, chez les six : la suite arrive */
+  function finirSurLaSuite(){
+    finir(true);
+    const c = document.createElement('div'); c.className = 'vaCarte';
+    c.innerHTML = '<div class="vaBulle"><h3>La suite arrive bientôt</h3><p>Rudy et Koraly préparent encore les derniers arrêts : le rond de couleur, les blocs, la bande, le doigt posé. Le guide sera complété dans une prochaine mise à jour.</p><button class="oui">D’accord</button></div>';
+    document.body.appendChild(c);
+    c.querySelector('.oui').addEventListener('click', () => c.remove());
+  }
   function finir(complete){
     arrete = true; fil++;
     nettoyerLaPrise();
@@ -919,7 +932,7 @@
      la pause est un bouton ⏸ dans la bande du haut */
   voile.addEventListener('click', e => { e.stopPropagation(); });
   function sauterA(k){
-    if (k < 0 || k >= ARRETS.length) return;
+    if (k < 0 || k >= ARRETS.length || k >= PUBLIES) return;
     fil++; try { son.pause(); } catch(e){}
     document.body.classList.remove('vaAttend', 'vaEnPause'); enPause = false; barre.querySelector('.pause .x').textContent = '⏸';
     nettoyerLaPrise(); eclairer(null); bleuir(null); voile.style.clipPath = '';
