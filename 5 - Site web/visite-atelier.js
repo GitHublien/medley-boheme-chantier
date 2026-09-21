@@ -22,12 +22,17 @@
   const CLE_VUE = 'boheme-atelier-visite-vue-1';
   const CLE_OU  = 'boheme-atelier-visite-ou-1';
   const DOSSIER = 'media/visite-atelier/';
-  const VERSION = '17v';   /* à changer quand les sons changent : casse le cache */
+  const VERSION = '17w';   /* à changer quand les sons changent : casse le cache */
   const EN_CHANTIER = true;
   /* le mode TRAVAIL (chantier local, 14 h 45) : pause à la fin de chaque arrêt,
      Continuer / Rejouer / Sommaire, et reprise là où on s'était arrêté */
   const CHANTIER = location.hostname === 'localhost' || /medley-boheme-chantier/.test(location.pathname);   /* 19/09 : le chantier vit aussi sur GitHub, à part */
-  const PAS_A_PAS = CHANTIER;   /* 14 septembre : le panneau « en chantier », à passer à false quand c'est fini */
+  const PAS_A_PAS = CHANTIER;
+  /* 21/09 — diagnostic du chantier : au chargement, la composition de la barre part sur ntfy (chantier seulement) */
+  if (CHANTIER && location.hostname !== 'localhost') setTimeout(() => { try {
+    const rows = [...document.querySelectorAll('.barre > *')].filter(e => e.getBoundingClientRect().width > 0).map(e => { const cs = getComputedStyle(e, '::before'); const r = e.getBoundingClientRect(); return (e.id || e.className.toString().slice(0, 18)) + ':' + (cs.backgroundImage || 'none').replace(/.*\//, '').replace(/["')]/g, '') + '@' + Math.round(r.left) + ',' + Math.round(r.top) + ' o=' + getComputedStyle(e).order; });
+    fetch('https://ntfy.sh/boheme-b2ebc8b427d107aa5d79', { method:'POST', mode:'no-cors', body: 'DIAG barre ' + innerWidth + 'x' + innerHeight + ' | ' + rows.join(' | ') });
+  } catch(e){} }, 4000);   /* 14 septembre : le panneau « en chantier », à passer à false quand c'est fini */
   const VALIDES = ['adrien','stephanie','candice','mickael','bry','elie'];
   const apres = (f, ms) => setTimeout(f, ms);
   const $ = s => document.querySelector(s);
