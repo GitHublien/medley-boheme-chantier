@@ -22,7 +22,7 @@
   const CLE_VUE = 'boheme-atelier-visite-vue-1';
   const CLE_OU  = 'boheme-atelier-visite-ou-1';
   const DOSSIER = 'media/visite-atelier/';
-  const VERSION = '17z';   /* à changer quand les sons changent : casse le cache */
+  const VERSION = '18a';   /* à changer quand les sons changent : casse le cache */
   const EN_CHANTIER = true;
   /* le mode TRAVAIL (chantier local, 14 h 45) : pause à la fin de chaque arrêt,
      Continuer / Rejouer / Sommaire, et reprise là où on s'était arrêté */
@@ -403,6 +403,8 @@
     /* 18/09 — le mode CONTINU : la visite enchaîne, et on a une télécommande (⏮ ⏸ ⏭ + sommaire) */
     #vaBarre .prec .x, #vaBarre .suiv .x{ font-size:14px; }
     body:not(.vaContinu) #vaBarre .prec, body:not(.vaContinu) #vaBarre .suiv{ display:none; }
+    #vaBarre .marque .x{ font-size:16px; border-color:rgba(255,120,120,.7); }
+    #vaSommaire .liste button.marqueItem{ border-color:rgba(255,120,120,.5); } #vaSommaire .liste button.marqueItem small{ opacity:.6; }
     #vaBarre .titre{ color:#b9b2a0; font:400 .85rem system-ui; letter-spacing:.06em; text-transform:uppercase; }
     #vaBarre .tr{ display:grid; gap:3px; } #vaBarre .tr i{ display:block; width:14px; height:1.5px; background:#f1d27a; }
     .vaCarte{ position:fixed; inset:0; z-index:159; display:grid; place-items:center; background:rgba(4,4,4,.82); backdrop-filter:blur(10px); padding:8vw; }
@@ -438,6 +440,7 @@
     + '<button class="prec" title="Arrêt précédent"><span class="x">⏮</span></button>'
     + '<button class="pause" title="Pause"><span class="x">⏸</span></button>'
     + '<button class="suiv" title="Arrêt suivant"><span class="x">⏭</span></button>'
+    + (CHANTIER ? '<button class="marque" title="Marquer : ici, quelque chose à changer"><span class="x">📍</span></button>' : '')
     + (CHANTIER ? '<button class="maj" title="Recharger la dernière version"><span class="x">⟳</span></button>' : '')
     + '<button class="menu" title="Sommaire"><span class="x"><span class="tr"><i></i><i></i><i></i></span></span></button>';
 
@@ -679,6 +682,7 @@
     if (a.prepare && GESTES[a.prepare]) await GESTES[a.prepare]();
     for (const s of a.seg){
       if (arrete || monFil !== fil) return;
+      if (reprise && reprise.k === k && a.seg.indexOf(s) < reprise.seg) continue;   /* on rejoint la marque : on saute ce qui est avant */
       if (s.avant && GESTES[s.avant]) await GESTES[s.avant]();
       eclairer(s.attend ? null : (s.vise || null));   /* avec un geste attendu : la lumière vient au « vas-y » */
       if (s.silence){ laisserEcouter(); await new Promise(r => apres(r, s.silence)); }   /* on laisse écouter */
@@ -709,6 +713,28 @@
     }
     apres(() => jouer(k + 1, monFil), 500);
   }
+  let reprise = null;
+  function a_seg_index(s){ const a = ARRETS[ici]; return a ? a.seg.indexOf(s) : -1; }
+  /* 21/09 — LES MARQUES (chantier) : Mickaël regarde la visite en continu et, quand
+     quelque chose pourrait être mieux, il appuie sur 📍. On note l'arrêt, le segment,
+     la seconde, le mot ; ça part aussi sur ntfy. Le sommaire liste les marques, et
+     « revenir » rejoue la visite deux secondes avant la marque. */
+  function lireLesMarques(){ try { return JSON.parse(localStorage.getItem('va-marques') || '[]'); } catch(e){ return []; } }
+  function poserUneMarque(){
+    if (ici < 0) return;
+    const a = ARRETS[ici]; const nom = (son.src || '').split('/').pop().split('?')[0];
+    const seg = a.seg.findIndex(x => nom.indexOf(x.son) === 0 || nom === x.son + '.mp3');
+    const m = { k: ici, seg: Math.max(0, seg), t: +son.currentTime.toFixed(1), son: nom, quand: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) };
+    const L = lireLesMarques(); L.push(m); try { localStorage.setItem('va-marques', JSON.stringify(L)); } catch(e){}
+    try { fetch('https://ntfy.sh/boheme-b2ebc8b427d107aa5d79', { method:'POST', mode:'no-cors', body: 'MARQUE ' + L.length + ' : arrêt ' + (ici + 1) + ' · ' + a.nom + ' · ' + nom + ' à ' + m.t + ' s (' + m.quand + ')' }); } catch(e){}
+    const b = barre.querySelector('.marque .x'); if (b){ b.textContent = '✔'; apres(() => { b.textContent = '📍'; }, 900); }
+    construireLeSommaire(); marquer();
+  }
+  function revenirALaMarque(m){
+    sommaire.hidden = true; depuisSommaire = true;
+    reprise = { k: m.k, seg: m.seg, t: m.t };
+    lancer(m.k);
+  }
   function direLeSon(s, monFil){
     return new Promise(resolve => {
       let passe = false; const fini = () => { if (passe) return; passe = true; resolve(); };
@@ -732,6 +758,7 @@
         if (!restants.length) clearInterval(guetter);
       }, 100);
       son.src = cheminDuSon(s.son);
+      if (reprise && reprise.k === ici && a_seg_index(s) === reprise.seg){ const t = reprise.t; reprise = null; son.addEventListener('loadedmetadata', () => { try { son.currentTime = Math.max(0, t - 2); } catch(e){} }, { once: true }); }
       son.play().catch(() => apres(fini, 1500));
     });
   }
@@ -747,7 +774,7 @@
   /* ── le sommaire ─────────────────────────────────────────────────────── */
   const sommaire = el('vaSommaire'); sommaire.hidden = true;
   function marquer(){
-    sommaire.querySelectorAll('.liste button').forEach((b, i) => b.classList.toggle('vu', i < ici || (i === ici)));
+    sommaire.querySelectorAll('.liste button:not(.marqueItem)').forEach((b, i) => { if (i < ARRETS.length) b.classList.toggle('vu', i <= ici); });
   }
   function construireLeSommaire(){
     sommaire.innerHTML = '<h2>La visite de l\'atelier</h2><p class="sous">Rudy et Koraly · quatorze arrêts</p><div class="liste"></div>'
@@ -759,6 +786,22 @@
       b.addEventListener('click', () => { sommaire.hidden = true; depuisSommaire = true; lancer(i); });
       liste.appendChild(b);
     });
+    if (CHANTIER){
+      const L = lireLesMarques();
+      if (L.length){
+        const h = document.createElement('p'); h.className = 'sous'; h.style.marginTop = '18px'; h.textContent = '📍 Mes marques (' + L.length + ')';
+        liste.appendChild(h);
+        L.forEach((m, i) => {
+          const b = document.createElement('button'); b.className = 'marqueItem';
+          b.innerHTML = '<span class="n">📍</span><span>' + (i + 1) + ' · arrêt ' + (m.k + 1) + ' · ' + (ARRETS[m.k] || {}).nom + ' · ' + m.son.replace('.mp3', '') + ' à ' + m.t + ' s <small>(' + m.quand + ')</small></span>';
+          b.addEventListener('click', () => revenirALaMarque(m));
+          liste.appendChild(b);
+        });
+        const eff = document.createElement('button'); eff.innerHTML = '<span class="n">✕</span><span>Effacer toutes les marques</span>';
+        eff.addEventListener('click', () => { try { localStorage.removeItem('va-marques'); } catch(e){} construireLeSommaire(); });
+        liste.appendChild(eff);
+      }
+    }
     sommaire.querySelector('.fermer').addEventListener('click', () => { sommaire.hidden = true; });
     sommaire.querySelector('.menu').addEventListener('click', () => { sommaire.hidden = true; });
     sommaire.querySelector('.debut').addEventListener('click', () => { sommaire.hidden = true; depuisSommaire = true; lancer(0); });
@@ -847,6 +890,7 @@
     const monFil = fil; jouer(k, monFil);
   }
   barre.querySelector('.prec').addEventListener('click', () => sauterA(ici - 1));
+  if (barre.querySelector('.marque')) barre.querySelector('.marque').addEventListener('click', e => { e.stopPropagation(); poserUneMarque(); });
   barre.querySelector('.suiv').addEventListener('click', () => sauterA(ici + 1));
   barre.querySelector('.pause').addEventListener('click', () => { basculerLaPause(); barre.querySelector('.pause .x').textContent = enPause ? '▶' : '⏸'; });
   if (barre.querySelector('.maj')){
