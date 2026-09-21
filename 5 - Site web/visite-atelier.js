@@ -22,7 +22,7 @@
   const CLE_VUE = 'boheme-atelier-visite-vue-1';
   const CLE_OU  = 'boheme-atelier-visite-ou-1';
   const DOSSIER = 'media/visite-atelier/';
-  const VERSION = '17x';   /* à changer quand les sons changent : casse le cache */
+  const VERSION = '17y';   /* à changer quand les sons changent : casse le cache */
   const EN_CHANTIER = true;
   /* le mode TRAVAIL (chantier local, 14 h 45) : pause à la fin de chaque arrêt,
      Continuer / Rejouer / Sommaire, et reprise là où on s'était arrêté */
@@ -32,7 +32,14 @@
   if (CHANTIER && location.hostname !== 'localhost') setTimeout(() => { try {
     const rows = [...document.querySelectorAll('.barre > *')].filter(e => e.getBoundingClientRect().width > 0).map(e => { const cs = getComputedStyle(e, '::before'); const r = e.getBoundingClientRect(); return (e.id || e.className.toString().slice(0, 18)) + ':' + (cs.backgroundImage || 'none').replace(/.*\//, '').replace(/["')]/g, '') + '@' + Math.round(r.left) + ',' + Math.round(r.top) + ' o=' + getComputedStyle(e).order; });
     fetch('https://ntfy.sh/boheme-b2ebc8b427d107aa5d79', { method:'POST', mode:'no-cors', body: 'DIAG barre ' + innerWidth + 'x' + innerHeight + ' | ' + rows.join(' | ') });
-  } catch(e){} }, 4000);   /* 14 septembre : le panneau « en chantier », à passer à false quand c'est fini */
+  } catch(e){} }, 4000);
+  /* et toutes les 5 s : si un disque ou une copie traîne hors visite, ou pendant la visite, on le dit (arrêt, segment, état) */
+  if (CHANTIER && location.hostname !== 'localhost') setInterval(() => { try {
+    const c = document.querySelectorAll('.vaCache').length, av = document.querySelectorAll('.vaAvant').length, pa = document.querySelectorAll('.vaParti').length;
+    if (!c && !av && !pa) return;
+    const info = 'DIAG prise c=' + c + ' avant=' + av + ' parti=' + pa + ' visite=' + document.body.classList.contains('enVisiteAtelier') + ' titre=' + ((document.getElementById('vaTitre') || {}).textContent || '') + ' son=' + (son.src || '').split('/').pop().split('?')[0] + ' t=' + son.currentTime.toFixed(1) + ' paused=' + son.paused + ' pos=' + [...document.querySelectorAll('.vaCache')].map(e => e.style.left + '/' + e.style.top).join(';');
+    if (info !== window.__diagPrise){ window.__diagPrise = info; fetch('https://ntfy.sh/boheme-b2ebc8b427d107aa5d79', { method:'POST', mode:'no-cors', body: info }); }
+  } catch(e){} }, 5000);   /* 14 septembre : le panneau « en chantier », à passer à false quand c'est fini */
   const VALIDES = ['adrien','stephanie','candice','mickael','bry','elie'];
   const apres = (f, ms) => setTimeout(f, ms);
   const $ = s => document.querySelector(s);
