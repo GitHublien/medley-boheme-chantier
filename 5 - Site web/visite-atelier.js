@@ -22,7 +22,7 @@
   const CLE_VUE = 'boheme-atelier-visite-vue-1';
   const CLE_OU  = 'boheme-atelier-visite-ou-1';
   const DOSSIER = 'media/visite-atelier/';
-  const VERSION = '17w';   /* à changer quand les sons changent : casse le cache */
+  const VERSION = '17x';   /* à changer quand les sons changent : casse le cache */
   const EN_CHANTIER = true;
   /* le mode TRAVAIL (chantier local, 14 h 45) : pause à la fin de chaque arrêt,
      Continuer / Rejouer / Sommaire, et reprise là où on s'était arrêté */
@@ -793,8 +793,17 @@
     try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(() => {}); } catch(e){}
     jouer(k, monFil);
   }
+  /* 21/09 — Mickaël : « un cercle vide qui ne devrait pas être là » : le disque noir posé
+     à la place d'un bouton pris dans les doigts restait sur l'écran si on quittait la
+     visite (✕, sommaire, saut) à ce moment-là. On nettoie tout, sans animation. */
+  function nettoyerLaPrise(){
+    document.querySelectorAll('.vaCache, .vaAvant, #vaVisage, #vaTele, #vaFaux').forEach(e => e.remove());
+    document.querySelectorAll('[data-va-parti]').forEach(o => { o.classList.remove('vaParti'); o.removeAttribute('data-va-parti'); });
+    avant = null; avantOrig = null; voile.style.background = 'transparent';
+  }
   function finir(complete){
     arrete = true; fil++;
+    nettoyerLaPrise();
     document.body.classList.remove('enVisiteAtelier', 'vaAttend', 'vaEnPause', 'vaContinu'); enPause = false;
     try { son.pause(); } catch(e){}
     arreterLaLecture();
@@ -825,8 +834,8 @@
     if (k < 0 || k >= ARRETS.length) return;
     fil++; try { son.pause(); } catch(e){}
     document.body.classList.remove('vaAttend', 'vaEnPause'); enPause = false; barre.querySelector('.pause .x').textContent = '⏸';
-    zoomer(null); eclairer(null); bleuir(null); voile.style.clipPath = '';
-    document.querySelectorAll('#vaFaux, #vaTele, .vaCarte').forEach(e => e.remove());
+    nettoyerLaPrise(); eclairer(null); bleuir(null); voile.style.clipPath = '';
+    document.querySelectorAll('.vaCarte').forEach(e => e.remove());
     laisserEcouter();
     const monFil = fil; jouer(k, monFil);
   }
